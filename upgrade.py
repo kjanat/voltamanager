@@ -2,13 +2,13 @@
 # /// script
 # requires-python = ">=3.13"
 # dependencies = [
-#     "argparse",
 #     "pathlib",
+#     "rich",
+#     "typer",
 #     "typing",
 # ]
 # ///
 
-import argparse
 import shutil
 import subprocess
 import sys
@@ -16,20 +16,29 @@ import tempfile
 from pathlib import Path
 from typing import List, Tuple, Optional
 
+import typer
+from rich.console import Console
+from rich.table import Table
+
+app = typer.Typer(help="Check and upgrade Volta-managed global packages")
+console = Console()
+
 
 def check_dependencies() -> bool:
     """Check if required commands are available."""
     if not shutil.which("volta"):
-        print("volta not found in PATH", file=sys.stderr)
+        console.print("[red]volta not found in PATH[/red]", file=sys.stderr)
         return False
     if not shutil.which("npm"):
-        print("npm not found (needed to query registry)", file=sys.stderr)
+        console.print(
+            "[red]npm not found (needed to query registry)[/red]", file=sys.stderr
+        )
         return False
     return True
 
 
 def get_installed_packages(safe_dir: Path) -> List[str]:
-    """Get list of Volta-managed packages."""
+    """Get the list of Volta-managed packages."""
     try:
         result = subprocess.run(
             ["volta", "list", "--format=plain"],
@@ -48,7 +57,7 @@ def get_installed_packages(safe_dir: Path) -> List[str]:
 
 
 def parse_package(name_ver: str) -> Tuple[str, str]:
-    """Parse package@version string into (name, version)."""
+    """Parse the package@version string into (name, version)."""
     if "@" not in name_ver:
         return name_ver, ""
 
@@ -62,7 +71,7 @@ def parse_package(name_ver: str) -> Tuple[str, str]:
 
 
 def get_latest_version(package_name: str, safe_dir: Path) -> Optional[str]:
-    """Query npm registry for latest version of a package."""
+    """Query npm registry for the latest versions of packages."""
     try:
         result = subprocess.run(
             ["npm", "view", package_name, "version"],
@@ -80,11 +89,13 @@ def get_latest_version(package_name: str, safe_dir: Path) -> Optional[str]:
 def fast_install(packages: List[str], safe_dir: Path, dry_run: bool) -> int:
     """Install packages without version checking."""
     if not packages:
-        print("Nothing to install (only project-pinned found).")
+        console.print(
+            "[yellow]Nothing to install (only project-pinned found).[/yellow]"
+        )
         return 0
 
     if dry_run:
-        print(f"Would install: {', '.join(packages)}")
+        console.print(f"[cyan]Would install:[/cyan] {', '.join(packages)}")
         return 0
 
     try:
@@ -140,61 +151,85 @@ def check_and_update(
 
     # Display check results
     if do_check:
-        print(f"{'Package':<42}  {'Installed':<12}  {'Latest':<12}  Status")
-        print(f"{'-' * 42}  {'-' * 12}  {'-' * 12}  ------")
+        table = Table(show_header=True, header_style="bold magenta")
+        table.add_column("Package", style="cyan", width=42)
+        table.add_column("Installed", style="blue", width=12)
+        table.add_column("Latest", style="blue", width=12)
+        table.add_column("Status", width=12)
+
         for i in range(len(names)):
-            print(f"{names[i]:<42}  {installed[i]:<12}  {latest[i]:<12}  {states[i]}")
+            status_style = ""
+            if states[i] == "OUTDATED":
+                status_style = "yellow"
+            elif states[i] == "up-to-date":
+                status_style = "green"
+            elif states[i] == "PROJECT":
+                status_style = "dim"
+
+            table.add_row(
+                names[i],
+                installed[i],
+                latest[i],
+                f"[{status_style}]{states[i]}[/{status_style}]",
+            )
+
+        console.print(table)
 
     # Perform updates
     if do_update:
         if not to_install:
-            print("All packages are up to date.")
+            console.print("[green]All packages are up to date.[/green]")
             return 0
 
         if dry_run:
-            print(
-                f"Would update ({len(to_install)} package(s)): {', '.join(to_install)}"
+            console.print(
+                f"[cyan]Would update ({len(to_install)} package(s)):[/cyan] {', '.join(to_install)}"
             )
             return 0
 
-        print(f"Updating {len(to_install)} package(s)...")
+        console.print(f"[yellow]Updating {len(to_install)} package(s)...[/yellow]")
         try:
             subprocess.run(["volta", "install"] + to_install, cwd=safe_dir, check=True)
+            console.print("[green]✓ Update complete[/green]")
             return 0
         except subprocess.CalledProcessError as e:
+            console.print(f"[red]✗ Update failed with code {e.returncode}[/red]")
             return e.returncode
 
     return 0
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Check and upgrade Volta-managed global packages"
-    )
-    parser.add_argument(
-        "-f", "--force", action="store_true", help="Skip version check and force update"
-    )
-    parser.add_argument(
-        "-u", "--update", action="store_true", help="Update outdated packages"
-    )
-    parser.add_argument(
-        "--dry", action="store_true", help="Show what would be done without doing it"
-    )
-    parser.add_argument(
-        "--include-project", action="store_true", help="Include project-pinned packages"
-    )
+@app.command()
+def main(
+    force: bool = typer.Option(
+        False, "--force", "-f", help="Skip version check and force update all packages"
+    ),
+    update: bool = typer.Option(
+        False, "--update", "-u", help="Update outdated packages"
+    ),
+    dry: bool = typer.Option(
+        False, "--dry", help="Show what would be done without doing it"
+    ),
+    include_project: bool = typer.Option(
+        False, "--include-project", help="Include project-pinned packages in operations"
+    ),
+):
+    """
+    Check and upgrade Volta-managed global packages.
 
-    args = parser.parse_args()
+    By default, it shows the current status of all installed packages.
+    Use --update to actually update outdated packages.
+    """
 
     # Determine behavior flags
-    do_check = not args.force
-    do_update = args.force or args.update
+    do_check = not force
+    do_update = force or update
 
     # Check dependencies
     if not check_dependencies():
-        return 127
+        raise typer.Exit(code=127)
 
-    # Create safe temporary directory
+    # Create a safe temporary directory
     with tempfile.TemporaryDirectory() as tmpdir:
         safe_dir = Path(tmpdir)
 
@@ -202,27 +237,29 @@ def main():
         namevers = get_installed_packages(safe_dir)
 
         if not namevers:
-            print("No Volta-managed packages found.")
-            return 0
+            console.print("[yellow]No Volta-managed packages found.[/yellow]")
+            raise typer.Exit(code=0)
 
         # Fast path: install without version checks
         if not do_check and not do_update:
             packages = []
             for name_ver in namevers:
                 name, ver = parse_package(name_ver)
-                if ver == "project" and not args.include_project:
+                if ver == "project" and not include_project:
                     continue
                 packages.append(name)
 
             # Remove duplicates and sort
             packages = sorted(set(packages))
-            return fast_install(packages, safe_dir, args.dry)
+            code = fast_install(packages, safe_dir, dry)
+            raise typer.Exit(code=code)
 
         # Full check/update path
-        return check_and_update(
-            namevers, safe_dir, do_check, do_update, args.dry, args.include_project
+        code = check_and_update(
+            namevers, safe_dir, do_check, do_update, dry, include_project
         )
+        raise typer.Exit(code=code)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    app()
