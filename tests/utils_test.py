@@ -6,6 +6,7 @@ import json
 from voltamanager.utils import (
     is_major_update,
     get_major_updates,
+    get_minor_updates,
     check_local_volta_config,
 )
 
@@ -107,6 +108,96 @@ class TestVersionComparison:
 
         assert len(result) == 1
         assert ("react", "17.0.2", "18.0.0") in result
+
+
+class TestMinorUpdates:
+    """Tests for get_minor_updates function."""
+
+    def test_get_minor_updates_empty(self) -> None:
+        """Test with empty input."""
+        result = get_minor_updates([], [], [], [])
+        assert result == []
+
+    def test_get_minor_updates_none_outdated(self) -> None:
+        """Test with all packages up-to-date."""
+        names = ["lodash", "axios"]
+        installed = ["4.17.21", "1.4.0"]
+        latest = ["4.17.21", "1.4.0"]
+        states = ["up-to-date", "up-to-date"]
+
+        result = get_minor_updates(names, installed, latest, states)
+        assert result == []
+
+    def test_get_minor_updates_major_only(self) -> None:
+        """Test with only major updates (should exclude them)."""
+        names = ["react", "vue"]
+        installed = ["17.0.2", "2.6.14"]
+        latest = ["18.0.0", "3.0.0"]
+        states = ["OUTDATED", "OUTDATED"]
+
+        result = get_minor_updates(names, installed, latest, states)
+        assert result == []
+
+    def test_get_minor_updates_with_minor(self) -> None:
+        """Test detection of minor version updates."""
+        names = ["lodash", "axios", "react"]
+        installed = ["4.17.20", "1.3.0", "17.0.2"]
+        latest = ["4.17.21", "1.4.0", "17.1.0"]
+        states = ["OUTDATED", "OUTDATED", "OUTDATED"]
+
+        result = get_minor_updates(names, installed, latest, states)
+
+        # Only axios and react should be detected as minor (lodash is patch)
+        assert len(result) == 2
+        assert ("axios", "1.3.0", "1.4.0") in result
+        assert ("react", "17.0.2", "17.1.0") in result
+        assert ("lodash", "4.17.20", "4.17.21") not in result
+
+    def test_get_minor_updates_patch_only(self) -> None:
+        """Test that patch updates are excluded."""
+        names = ["lodash"]
+        installed = ["4.17.20"]
+        latest = ["4.17.21"]
+        states = ["OUTDATED"]
+
+        result = get_minor_updates(names, installed, latest, states)
+        assert result == []
+
+    def test_get_minor_updates_with_unknown(self) -> None:
+        """Test handling of unknown versions."""
+        names = ["axios", "unknown-pkg"]
+        installed = ["1.3.0", "1.0.0"]
+        latest = ["1.4.0", "?"]
+        states = ["OUTDATED", "UNKNOWN"]
+
+        result = get_minor_updates(names, installed, latest, states)
+
+        assert len(result) == 1
+        assert ("axios", "1.3.0", "1.4.0") in result
+
+    def test_get_minor_updates_invalid_versions(self) -> None:
+        """Test handling of invalid version strings."""
+        names = ["pkg1", "pkg2"]
+        installed = ["invalid", "1.2.0"]
+        latest = ["2.0.0", "bad-version"]
+        states = ["OUTDATED", "OUTDATED"]
+
+        result = get_minor_updates(names, installed, latest, states)
+        # Both should be excluded due to invalid versions
+        assert result == []
+
+    def test_get_minor_updates_mixed_scenarios(self) -> None:
+        """Test mixed update scenarios."""
+        names = ["major-pkg", "minor-pkg", "patch-pkg", "current-pkg"]
+        installed = ["1.0.0", "2.5.0", "3.4.10", "4.0.0"]
+        latest = ["2.0.0", "2.6.0", "3.4.11", "4.0.0"]
+        states = ["OUTDATED", "OUTDATED", "OUTDATED", "up-to-date"]
+
+        result = get_minor_updates(names, installed, latest, states)
+
+        # Only minor-pkg should be detected
+        assert len(result) == 1
+        assert ("minor-pkg", "2.5.0", "2.6.0") in result
 
 
 class TestVoltaConfigCheck:

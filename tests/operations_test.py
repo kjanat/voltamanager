@@ -366,3 +366,79 @@ class TestCheckAndUpdate:
             call_args = mock_get_versions.call_args[0][0]
             pkg_names = [name for name, _ in call_args]
             assert "excluded-pkg" not in pkg_names
+
+    @patch("voltamanager.operations.get_latest_versions_parallel")
+    @patch("voltamanager.operations.check_local_volta_config")
+    def test_check_and_update_no_cache_explicit(
+        self, mock_check_config, mock_get_versions, tmp_path
+    ):
+        """Test check_and_update with use_cache=False (no cache path)."""
+        mock_check_config.return_value = False
+        mock_get_versions.return_value = {"lodash": "4.17.21", "axios": "1.5.0"}
+        config = Config()
+
+        namevers = ["lodash@4.17.20", "axios@1.5.0"]
+
+        result = check_and_update(
+            namevers,
+            tmp_path,
+            do_check=True,
+            do_update=False,
+            dry_run=False,
+            include_project=False,
+            json_output=False,
+            outdated_only=False,
+            interactive=False,
+            use_cache=False,  # Explicitly test no-cache path
+            config=config,
+            verbose=False,
+        )
+
+        assert result == 0
+        assert mock_get_versions.called
+
+    @patch("voltamanager.operations.get_latest_versions_parallel")
+    @patch("voltamanager.operations.get_cached_version")
+    @patch("voltamanager.operations.cache_version")
+    @patch("voltamanager.operations.check_local_volta_config")
+    def test_check_and_update_partial_cache(
+        self,
+        mock_check_config,
+        mock_cache_version,
+        mock_get_cached,
+        mock_get_versions,
+        tmp_path,
+    ):
+        """Test check_and_update with partial cache hits (uncached branch)."""
+        mock_check_config.return_value = False
+
+        # lodash is cached, axios is not
+        def side_effect(pkg_name):
+            if pkg_name == "lodash":
+                return "4.17.21"
+            return None  # axios not cached
+
+        mock_get_cached.side_effect = side_effect
+        mock_get_versions.return_value = {"axios": "1.5.0"}
+        config = Config()
+
+        namevers = ["lodash@4.17.20", "axios@1.4.0"]
+
+        result = check_and_update(
+            namevers,
+            tmp_path,
+            do_check=True,
+            do_update=False,
+            dry_run=False,
+            include_project=False,
+            json_output=False,
+            outdated_only=False,
+            interactive=False,
+            use_cache=True,  # Test partial cache path
+            config=config,
+            verbose=False,
+        )
+
+        assert result == 0
+        # axios should be cached after fetch
+        mock_cache_version.assert_called_once_with("axios", "1.5.0")
