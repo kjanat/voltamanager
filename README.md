@@ -58,6 +58,7 @@ $ voltamanager main [OPTIONS]
 * `--no-cache`: Bypass version cache and query npm directly
 * `-v, --verbose`: Verbose output with additional details
 * `-q, --quiet`: Minimal output (suppress tables unless updating)
+* `-a, --all-packages`: Show all packages including excluded ones
 * `--help`: Show this message and exit.
 
 ## `voltamanager config`

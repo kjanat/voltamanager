@@ -6,12 +6,15 @@ from pathlib import Path
 
 import pytest
 
+
 from voltamanager.cache import (
-    CACHE_TTL,
     get_cached_version,
     cache_version,
     clear_cache,
 )
+
+# Define CACHE_TTL for tests (default 1 hour)
+CACHE_TTL = timedelta(hours=1)
 
 
 @pytest.fixture

@@ -24,6 +24,8 @@ from .utils import (
     get_minor_updates,
     get_changelog_url,
     check_local_volta_config,
+    check_disk_space,
+    estimate_update_size,
 )
 
 console = Console()
@@ -97,6 +99,7 @@ def check_and_update(
     use_cache: bool,
     config: Config,
     verbose: bool = False,
+    all_packages: bool = False,
 ) -> int:
     """Check versions and optionally update packages."""
 
@@ -109,14 +112,17 @@ def check_and_update(
     states = []
     to_install = []
     snapshot = {}
+    excluded_packages = []
 
     # Parse packages and prepare for version checking
     packages_to_check = []
     for name_ver in namevers:
         name, ver = parse_package(name_ver)
 
-        # Skip excluded packages
+        # Track excluded packages if --all-packages flag is set
         if config.should_exclude(name):
+            if all_packages:
+                excluded_packages.append((name, ver))
             continue
 
         if ver == "project":
@@ -135,7 +141,7 @@ def check_and_update(
     if use_cache:
         # Try cache first
         for name, ver in packages_to_check:
-            cached = get_cached_version(name)
+            cached = get_cached_version(name, config.cache_ttl_hours)
             if cached:
                 lat = cached
             else:
@@ -195,6 +201,14 @@ def check_and_update(
                     states.append("OUTDATED")
                     to_install.append(f"{name}@latest")
 
+    # Add excluded packages to display if --all-packages flag is set
+    if all_packages and excluded_packages:
+        for name, ver in excluded_packages:
+            names.append(name)
+            installed.append(ver)
+            latest.append("-")
+            states.append("EXCLUDED")
+
     # Display check results
     if do_check:
         if json_output:
@@ -202,6 +216,12 @@ def check_and_update(
         else:
             display_table(names, installed, latest, states, outdated_only)
             display_statistics(states)
+
+            # Show info about excluded packages if not showing them
+            if excluded_packages and not all_packages:
+                console.print(
+                    f"\n[dim]ℹ {len(excluded_packages)} package(s) excluded (use --all-packages to see them)[/dim]"
+                )
 
             # Warn about major version updates
             major_updates = get_major_updates(names, installed, latest, states)
@@ -231,6 +251,29 @@ def check_and_update(
         if not to_install:
             console.print("[green]All packages are up to date.[/green]")
             return 0
+
+        # Pre-update safety checks
+        if not dry_run:
+            # Check disk space
+            estimated_size = estimate_update_size(len(to_install))
+            sufficient_space, available_mb = check_disk_space(estimated_size)
+
+            if not sufficient_space and available_mb >= 0:
+                console.print("[red]✗ Insufficient disk space[/red]")
+                console.print(
+                    f"[yellow]  Estimated needed: ~{estimated_size}MB[/yellow]"
+                )
+                console.print(f"[yellow]  Available: {available_mb}MB[/yellow]")
+                console.print("\n[yellow]💡 Suggestions:[/yellow]")
+                console.print("  • Free up disk space")
+                console.print("  • Update fewer packages at once")
+                console.print("  • Use --interactive to select specific packages")
+                return 1
+
+            if verbose and available_mb >= 0:
+                console.print(
+                    f"[dim]✓ Disk space check passed ({available_mb}MB available)[/dim]"
+                )
 
         # Interactive mode
         if interactive and to_install:

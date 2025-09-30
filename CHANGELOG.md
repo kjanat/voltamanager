@@ -7,6 +7,78 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2025-09-30
+
+### Added
+
+- **Configurable Cache TTL**: Cache time-to-live now respects `cache_ttl_hours` from config
+
+  - `get_cached_version()` accepts `ttl_hours` parameter
+  - Operations use configured TTL from Config class
+  - Enables longer cache durations for stability (e.g., 24 hours)
+  - Default remains 1 hour for backward compatibility
+
+- **--all-packages Flag**: Show excluded packages in status table
+
+  - `voltamanager --all-packages`: Display all packages including excluded ones
+  - Excluded packages shown with `EXCLUDED` status in dim red
+  - Info message when packages are excluded (and not shown)
+  - Works with both table and JSON output modes
+  - Example: `voltamanager --all-packages` or `voltamanager -a`
+
+- **Shell Completion**: Built-in tab completion for commands and options
+
+  - Typer's native completion system enabled
+  - Works with bash, zsh, fish shells
+  - Install with: `voltamanager --install-completion`
+  - Enhances CLI usability and discoverability
+
+- **Pre-Update Safety Checks**: Disk space validation before updates
+
+  - Estimates update size (~50MB per package)
+  - Checks available disk space automatically
+  - Blocks updates if insufficient space
+  - Provides actionable error messages with suggestions
+  - Verbose mode shows disk space check results
+  - Dry run skips check (shows plan only)
+  - Examples show: available space, estimated need, recommendations
+
+- **Enhanced Error Messages**: Better user guidance throughout
+
+  - Disk space errors include specific MB counts and suggestions
+  - Clear action items when operations fail
+  - Improved formatting with Rich console output
+  - Professional, actionable feedback
+
+### Changed
+
+- Cache functions now accept TTL parameter for flexibility
+- Operations pass config TTL to cache functions
+- Display statistics now show excluded count when applicable
+- Improved display formatting for excluded packages
+
+### Tests
+
+- Added 4 tests for configurable cache TTL (cache_ttl_test.py)
+- Added 4 tests for --all-packages flag (all_packages_test.py)
+- Added 8 tests for disk space checking (disk_space_test.py)
+- Fixed 2 existing tests to accommodate new cache signature
+- Total test count: 230 → 246 tests (+16 tests)
+- Overall coverage: 87.79% → 88.31% (+0.52%)
+- All 246 tests passing ✅
+- cache.py: 100% coverage (maintained)
+- logger.py: 100% coverage (maintained)
+- display.py: 95.24% coverage (improved)
+- operations.py: 90.38% coverage (improved)
+- utils.py: 94.17% coverage (improved)
+
+### Internal Improvements
+
+- Added `check_disk_space()` utility function
+- Added `estimate_update_size()` for conservative size estimates
+- Improved code organization and documentation
+- Better type hints and function signatures
+
 ## [0.10.0] - 2025-09-30
 
 ### Added

@@ -5,17 +5,25 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 CACHE_DIR = Path.home() / ".cache" / "voltamanager"
-CACHE_TTL = timedelta(hours=1)
 
 
-def get_cached_version(package_name: str) -> str | None:
-    """Get cached version if available and not expired."""
+def get_cached_version(package_name: str, ttl_hours: int = 1) -> str | None:
+    """Get cached version if available and not expired.
+
+    Args:
+        package_name: Name of the package
+        ttl_hours: Time-to-live in hours (default: 1)
+
+    Returns:
+        Cached version string if valid, None otherwise
+    """
+    cache_ttl = timedelta(hours=ttl_hours)
     cache_file = CACHE_DIR / f"{package_name.replace('/', '_')}.json"
     if cache_file.exists():
         try:
             data = json.loads(cache_file.read_text())
             cached_time = datetime.fromisoformat(data["timestamp"])
-            if datetime.now() - cached_time < CACHE_TTL:
+            if datetime.now() - cached_time < cache_ttl:
                 version = data.get("version")
                 if isinstance(version, str):
                     return version

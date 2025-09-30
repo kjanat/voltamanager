@@ -302,7 +302,7 @@ class TestCheckAndUpdate:
         )
 
         assert result == 0
-        mock_get_cached.assert_called_once_with("pkg1")
+        mock_get_cached.assert_called_once_with("pkg1", 1)  # Include TTL param
 
     @patch("voltamanager.operations.get_latest_versions_parallel")
     @patch("voltamanager.operations.check_local_volta_config")
@@ -413,7 +413,7 @@ class TestCheckAndUpdate:
         mock_check_config.return_value = False
 
         # lodash is cached, axios is not
-        def side_effect(pkg_name):
+        def side_effect(pkg_name, ttl_hours=1):
             if pkg_name == "lodash":
                 return "4.17.21"
             return None  # axios not cached

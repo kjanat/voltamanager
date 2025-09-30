@@ -12,7 +12,10 @@ from .cache import clear_cache
 
 from rich.console import Console
 
-app = typer.Typer(help="Check and upgrade Volta-managed global packages")
+app = typer.Typer(
+    help="Check and upgrade Volta-managed global packages",
+    add_completion=True,
+)
 console = Console()
 
 
@@ -45,6 +48,9 @@ def main(
     ),
     quiet: bool = typer.Option(
         False, "--quiet", "-q", help="Minimal output (suppress tables unless updating)"
+    ),
+    all_packages: bool = typer.Option(
+        False, "--all-packages", "-a", help="Show all packages including excluded ones"
     ),
 ) -> None:
     """
@@ -123,6 +129,7 @@ def main(
             not no_cache,
             config,
             verbose,
+            all_packages,
         )
         raise typer.Exit(code=code)
 

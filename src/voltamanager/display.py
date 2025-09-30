@@ -36,6 +36,8 @@ def display_table(
             status_style = "green"
         elif states[i] == "PROJECT":
             status_style = "dim"
+        elif states[i] == "EXCLUDED":
+            status_style = "dim red"
 
         status_text = states[i]
         if (
@@ -89,6 +91,8 @@ def display_statistics(states: List[str]) -> None:
     console.print(f"  Outdated: {states.count('OUTDATED')}")
     console.print(f"  Project-pinned: {states.count('PROJECT')}")
     console.print(f"  Unknown: {states.count('UNKNOWN')}")
+    if states.count("EXCLUDED") > 0:
+        console.print(f"  Excluded: {states.count('EXCLUDED')}")
 
 
 def display_dry_run_report(

@@ -1,6 +1,7 @@
 """Utility functions for version comparison and configuration checks."""
 
 import json
+import shutil
 from pathlib import Path
 from packaging import version as pkg_version
 
@@ -159,3 +160,35 @@ def check_local_volta_config(verbose: bool = False) -> bool:
         pass
 
     return False
+
+
+def check_disk_space(min_mb: int = 500) -> tuple[bool, int]:
+    """Check if sufficient disk space is available.
+
+    Args:
+        min_mb: Minimum required space in MB (default: 500)
+
+    Returns:
+        Tuple of (sufficient_space, available_mb)
+    """
+    try:
+        stat = shutil.disk_usage(Path.home())
+        available_mb = stat.free // (1024 * 1024)
+        return available_mb >= min_mb, available_mb
+    except OSError:
+        # If we can't check, assume it's okay
+        return True, -1
+
+
+def estimate_update_size(package_count: int) -> int:
+    """Estimate disk space needed for updates in MB.
+
+    Args:
+        package_count: Number of packages to update
+
+    Returns:
+        Estimated size in MB (conservative estimate)
+    """
+    # Conservative estimate: 50MB per package on average
+    # Some packages like typescript, webpack are larger
+    return package_count * 50
