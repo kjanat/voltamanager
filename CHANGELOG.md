@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2025-09-30
+
+### Added
+
+- 59 comprehensive tests for logger.py module (StructuredFormatter, setup, operations, stats)
+- 2 new tests for operations.py covering no-cache and partial cache paths
+- 9 new tests for utils.py testing get_minor_updates function
+
+### Changed
+
+- Improved overall test coverage from 85.23% to 92.30% (+7.07%)
+- logger.py coverage: 62.20% → 100.00% (+37.80%)
+- operations.py coverage: 76.47% → 87.33% (+10.86%)
+- utils.py coverage: 80.65% → 93.55% (+12.90%)
+- Total test count: 182 → 213 tests (+31 tests)
+
+### Fixed
+
+- Uncovered code paths in partial cache logic
+- Edge cases in log statistics parsing
+- Minor update detection edge cases
+
 ## [0.8.0] - 2025-09-30
 
 ### Added
