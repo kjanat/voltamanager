@@ -21,6 +21,7 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 * `clear-cache`: Clear the npm version cache.
 * `logs`: View voltamanager logs and statistics.
 * `rollback`: Rollback to previous package versions.
+* `bench`: Benchmark npm registry query performance.
 
 ## `voltamanager main`
 
@@ -98,6 +99,9 @@ $ voltamanager logs [OPTIONS]
 **Options**:
 
 * `--stats`: Show log statistics
+* `-n, --tail INTEGER`: Number of log lines to show (default: 20)  [default: 20]
+* `--clear`: Clear all log files
+* `-s, --search TEXT`: Search logs for specific text
 * `--help`: Show this message and exit.
 
 ## `voltamanager rollback`
@@ -113,4 +117,19 @@ $ voltamanager rollback [OPTIONS]
 **Options**:
 
 * `-f, --force`: Skip confirmation prompt
+* `--help`: Show this message and exit.
+
+## `voltamanager bench`
+
+Benchmark npm registry query performance.
+
+**Usage**:
+
+```console
+$ voltamanager bench [OPTIONS]
+```
+
+**Options**:
+
+* `-p, --packages INTEGER`: Number of test packages to check  [default: 10]
 * `--help`: Show this message and exit.

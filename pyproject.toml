@@ -1,6 +1,6 @@
 [project]
 name = "voltamanager"
-version = "0.7.0"
+version = "0.8.0"
 description = "Check and upgrade Volta-managed global packages"
 requires-python = ">=3.13"
 dependencies = [
@@ -31,3 +31,39 @@ preview = true
 
 [tool.ruff.format]
 preview = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["*_test.py", "test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--verbose",
+    "--cov=voltamanager",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-branch",
+]
+
+[tool.coverage.run]
+source = ["src/voltamanager"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

@@ -145,9 +145,31 @@ def clear_cache_command() -> None:
 @app.command(name="logs")
 def logs_command(
     stats: bool = typer.Option(False, "--stats", help="Show log statistics"),
+    tail: int = typer.Option(
+        20, "--tail", "-n", help="Number of log lines to show (default: 20)"
+    ),
+    clear: bool = typer.Option(False, "--clear", help="Clear all log files"),
+    search: str = typer.Option(
+        "", "--search", "-s", help="Search logs for specific text"
+    ),
 ) -> None:
     """View voltamanager logs and statistics."""
     from .logger import LOG_FILE, get_log_stats
+
+    if clear:
+        confirm = typer.confirm(
+            "Are you sure you want to clear all log files?", default=False
+        )
+        if not confirm:
+            console.print("[yellow]Clear cancelled[/yellow]")
+            return
+
+        if LOG_FILE.exists():
+            LOG_FILE.unlink()
+            console.print("[green]✓ Logs cleared[/green]")
+        else:
+            console.print("[yellow]No log file to clear[/yellow]")
+        return
 
     if stats:
         stats_data = get_log_stats()
@@ -165,11 +187,33 @@ def logs_command(
             return
 
         console.print(f"[bold]Log file:[/bold] {LOG_FILE}")
-        console.print("\n[dim]Last 20 entries:[/dim]")
+
         with open(LOG_FILE) as f:
             lines = f.readlines()
-            for line in lines[-20:]:
-                console.print(line.rstrip())
+
+        # Apply search filter if provided
+        if search:
+            lines = [line for line in lines if search.lower() in line.lower()]
+            console.print(f"\n[dim]Showing entries matching '{search}':[/dim]")
+        else:
+            console.print(f"\n[dim]Last {min(tail, len(lines))} entries:[/dim]")
+
+        # Show last N lines
+        display_lines = lines[-tail:] if tail > 0 else lines
+
+        if not display_lines:
+            console.print("[yellow]No matching log entries found[/yellow]")
+        else:
+            for line in display_lines:
+                # Color code by log level
+                if " ERROR " in line:
+                    console.print(f"[red]{line.rstrip()}[/red]")
+                elif " WARNING " in line:
+                    console.print(f"[yellow]{line.rstrip()}[/yellow]")
+                elif " INFO " in line:
+                    console.print(f"[dim]{line.rstrip()}[/dim]")
+                else:
+                    console.print(line.rstrip())
 
 
 @app.command(name="rollback")
@@ -233,6 +277,105 @@ def rollback(
             "[yellow]💡 Some packages may have been partially rolled back[/yellow]"
         )
         raise typer.Exit(e.returncode)
+
+
+@app.command(name="bench")
+def benchmark(
+    packages: int = typer.Option(
+        10, "--packages", "-p", help="Number of test packages to check"
+    ),
+) -> None:
+    """Benchmark npm registry query performance."""
+    import time
+    from rich.table import Table
+    from .npm import get_latest_version, get_latest_versions_parallel
+
+    console.print("[bold]Running performance benchmark...[/bold]\n")
+
+    # Test packages (common popular packages)
+    test_packages = [
+        "typescript",
+        "eslint",
+        "prettier",
+        "webpack",
+        "vite",
+        "react",
+        "vue",
+        "express",
+        "lodash",
+        "axios",
+        "jest",
+        "mocha",
+        "babel",
+        "rollup",
+        "esbuild",
+        "@types/node",
+        "@vue/cli",
+        "@angular/core",
+        "@babel/core",
+        "@webpack-cli/serve",
+    ][:packages]
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        safe_dir = Path(tmpdir)
+
+        # Sequential benchmark
+        console.print("[cyan]Sequential queries...[/cyan]")
+        sequential_start = time.time()
+        for pkg in test_packages:
+            get_latest_version(pkg, safe_dir)
+        sequential_time = time.time() - sequential_start
+
+        # Parallel benchmark (default workers)
+        console.print("[cyan]Parallel queries (10 workers)...[/cyan]")
+        parallel_start = time.time()
+        get_latest_versions_parallel(
+            [(pkg, "1.0.0") for pkg in test_packages], safe_dir, max_workers=10
+        )
+        parallel_time = time.time() - parallel_start
+
+        # Parallel benchmark (high concurrency)
+        console.print("[cyan]Parallel queries (20 workers)...[/cyan]")
+        parallel_high_start = time.time()
+        get_latest_versions_parallel(
+            [(pkg, "1.0.0") for pkg in test_packages], safe_dir, max_workers=20
+        )
+        parallel_high_time = time.time() - parallel_high_start
+
+    # Display results
+    console.print("\n[bold]Results:[/bold]")
+    table = Table(show_header=True)
+    table.add_column("Method", style="cyan")
+    table.add_column("Time (s)", justify="right", style="yellow")
+    table.add_column("Speedup", justify="right", style="green")
+    table.add_column("Pkgs/sec", justify="right", style="blue")
+
+    baseline = sequential_time
+    table.add_row(
+        "Sequential",
+        f"{sequential_time:.2f}",
+        "1.00×",
+        f"{packages / sequential_time:.1f}",
+    )
+    table.add_row(
+        "Parallel (10 workers)",
+        f"{parallel_time:.2f}",
+        f"{baseline / parallel_time:.2f}×",
+        f"{packages / parallel_time:.1f}",
+    )
+    table.add_row(
+        "Parallel (20 workers)",
+        f"{parallel_high_time:.2f}",
+        f"{baseline / parallel_high_time:.2f}×",
+        f"{packages / parallel_high_time:.1f}",
+    )
+
+    console.print(table)
+
+    console.print(f"\n[dim]Tested with {packages} packages[/dim]")
+    console.print(
+        "[green]💡 Recommendation:[/green] Use parallel mode (default) for best performance"
+    )
 
 
 if __name__ == "__main__":

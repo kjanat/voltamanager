@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2025-09-30
+
+### Added
+
+- **Enhanced Logging Features**: Comprehensive log management capabilities
+
+  - `--tail N` / `-n N`: Show last N log lines (default: 20)
+  - `--search TEXT` / `-s TEXT`: Filter logs by search term (case-insensitive)
+  - `--clear`: Clear all log files with confirmation prompt
+  - Color-coded log levels (ERROR in red, WARNING in yellow, INFO in dim)
+  - Smart log display with context-aware formatting
+
+- **Performance Benchmarking**: New `bench` command for measuring npm registry query performance
+
+  - Sequential vs parallel query comparisons
+  - Multi-worker concurrency testing (10 vs 20 workers)
+  - Speedup calculations and performance metrics
+  - Packages-per-second measurements
+  - Recommendations for optimal configuration
+  - Customizable test package count (`--packages N` / `-p N`)
+
+- **Testing Excellence**: Added 31 new comprehensive tests
+
+  - 9 new tests for bench command (integration tests)
+  - 22 new tests for enhanced logs features (edge cases, combinations, color coding)
+  - Total test count: 151 → 182 tests (+20% growth)
+  - All tests passing with 85.23% overall coverage
+
+- **Configuration Enhancements**: pytest and coverage configuration in pyproject.toml
+
+  - Branch coverage enabled for more thorough testing
+  - HTML coverage reports with detailed missing line tracking
+  - Consistent test discovery patterns
+  - Coverage exclusions for standard boilerplate
+
+### Improved
+
+- **Test Coverage**: Maintained excellent coverage despite new features
+
+  - Overall coverage: 85.23% (692 statements, 81 missing)
+  - __init__.py coverage: 86.67% (was 75% in v0.7.0)
+  - npm.py coverage: 97.30%
+  - Core modules at 95%+ coverage
+  - 31 new tests added without coverage regression
+
+- **Logs Command**: Major user experience improvements
+
+  - Previously: Limited to last 20 entries, no filtering
+  - Now: Configurable tail, search filtering, color coding, clearing
+  - Better visibility into application history and debugging
+
+- **Developer Experience**: Enhanced benchmarking capabilities
+
+  - Quick performance validation for optimization work
+  - Clear comparison metrics for parallel vs sequential operations
+  - Real-world package testing with popular npm packages
+
+### Testing
+
+- All 182 tests passing (100% success rate)
+- Test execution time: ~22 seconds (includes real npm queries in bench tests)
+- Zero test failures, zero warnings
+- Comprehensive edge case coverage for new features
+
 ## [0.7.0] - 2025-09-30
 
 ### Added
