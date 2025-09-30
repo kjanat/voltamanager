@@ -665,5 +665,121 @@ def package_info(
         raise typer.Exit(1)
 
 
+@app.command(name="breaking-changes")
+def breaking_changes(
+    packages: list[str] = typer.Argument(
+        None, help="Specific packages to check (empty for all)"
+    ),
+) -> None:
+    """Analyze packages with major version updates (breaking changes).
+
+    Shows detailed information about packages that have major version bumps,
+    which may contain breaking changes requiring code updates.
+
+    Examples:
+        voltamanager breaking-changes              # Check all packages
+        voltamanager breaking-changes typescript   # Check specific package
+    """
+    from rich.table import Table
+    from .utils import get_major_updates, get_changelog_url
+
+    # Check dependencies
+    if not check_dependencies():
+        raise typer.Exit(code=127)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        safe_dir = Path(tmpdir)
+
+        # Get installed packages
+        console.print("[dim]Fetching installed packages...[/dim]")
+        namevers = get_installed_packages(safe_dir)
+
+        if not namevers:
+            console.print("[yellow]No Volta-managed packages found.[/yellow]")
+            raise typer.Exit(code=0)
+
+        # Parse packages
+        pkg_list = []
+        names_list = []
+        for name_ver in namevers:
+            name, ver = parse_package(name_ver)
+            if ver != "project":  # Skip project-pinned
+                pkg_list.append((name, ver))
+                names_list.append(name)
+
+        # Filter by specified packages if provided
+        if packages:
+            pkg_list = [(n, v) for n, v in pkg_list if n in packages]
+            names_list = [n for n in names_list if n in packages]
+
+            if not pkg_list:
+                console.print(
+                    "[yellow]None of the specified packages are installed[/yellow]"
+                )
+                raise typer.Exit(code=1)
+
+        console.print(f"[dim]Checking {len(pkg_list)} packages for updates...[/dim]\n")
+
+        # Get latest versions
+        from .npm import get_latest_versions_parallel
+
+        latest_dict = get_latest_versions_parallel(pkg_list, safe_dir)
+
+        # Build lists for analysis
+        names = []
+        installed = []
+        latest = []
+        states = []
+
+        for name, ver in pkg_list:
+            names.append(name)
+            installed.append(ver)
+            lat = latest_dict.get(name) or "?"
+            latest.append(lat)
+
+            if lat == "?" or lat is None:
+                states.append("UNKNOWN")
+            elif ver == lat:
+                states.append("up-to-date")
+            else:
+                states.append("OUTDATED")
+
+        # Get major updates
+        major_updates = get_major_updates(names, installed, latest, states)
+
+        if not major_updates:
+            console.print("[green]✓ No major version updates detected![/green]")
+            console.print(
+                "[dim]All packages are either up-to-date or have minor/patch updates only.[/dim]"
+            )
+            raise typer.Exit(code=0)
+
+        # Display results
+        console.print(
+            f"[yellow]⚠ Found {len(major_updates)} packages with major version updates:[/yellow]\n"
+        )
+
+        table = Table(show_header=True, header_style="bold red")
+        table.add_column("Package", style="cyan", width=35)
+        table.add_column("Current", style="yellow", width=12)
+        table.add_column("Latest", style="green", width=12)
+        table.add_column("Changelog", style="blue", width=50)
+
+        for pkg_name, current, lat in major_updates:
+            changelog = get_changelog_url(pkg_name)
+            table.add_row(pkg_name, current, lat, changelog)
+
+        console.print(table)
+
+        console.print("\n[bold]⚠ Breaking Changes Warning:[/bold]")
+        console.print(
+            "  Major version updates often contain breaking changes that may require"
+        )
+        console.print("  code changes or configuration updates in your projects.")
+        console.print(
+            "\n[dim]💡 Review changelogs before updating to understand the impact.[/dim]"
+        )
+
+
 if __name__ == "__main__":
     app()

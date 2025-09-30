@@ -26,6 +26,7 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 * `audit`: Run security audit on installed packages.
 * `pin`: Pin packages to prevent updates (adds to...
 * `info`: Show detailed information about a package.
+* `breaking-changes`: Analyze packages with major version...
 
 ## `voltamanager main`
 
@@ -232,6 +233,31 @@ $ voltamanager info [OPTIONS] PACKAGE
 **Arguments**:
 
 * `PACKAGE`: Package name to get information about  [required]
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `voltamanager breaking-changes`
+
+Analyze packages with major version updates (breaking changes).
+
+Shows detailed information about packages that have major version bumps,
+which may contain breaking changes requiring code updates.
+
+Examples:
+    voltamanager breaking-changes              # Check all packages
+    voltamanager breaking-changes typescript   # Check specific package
+
+**Usage**:
+
+```console
+$ voltamanager breaking-changes [OPTIONS] [PACKAGES]...
+```
+
+**Arguments**:
+
+* `[PACKAGES]...`: Specific packages to check (empty for all)
 
 **Options**:
 
