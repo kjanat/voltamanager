@@ -173,32 +173,65 @@ def logs_command(
 
 
 @app.command(name="rollback")
-def rollback() -> None:
+def rollback(
+    force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation prompt"),
+) -> None:
     """Rollback to previous package versions."""
     import json
     import subprocess
     from pathlib import Path
+    from rich.table import Table
 
     snapshot_file = Path.home() / ".voltamanager" / "last_snapshot.json"
     if not snapshot_file.exists():
-        console.print("[red]No snapshot found - cannot rollback[/red]")
+        console.print("[red]✗ No snapshot found - cannot rollback[/red]")
         console.print(
-            "[yellow]Snapshots are created before updates with --update[/yellow]"
+            "[yellow]💡 Snapshots are created before updates with --update[/yellow]"
         )
         raise typer.Exit(1)
 
     snapshot = json.loads(snapshot_file.read_text())
     packages = [f"{name}@{ver}" for name, ver in snapshot.items()]
 
-    console.print(f"[yellow]Rolling back {len(packages)} packages...[/yellow]")
+    # Show what will be rolled back
+    console.print("\n[bold]Rollback Preview:[/bold]")
+    table = Table(show_header=True)
+    table.add_column("Package", style="cyan")
+    table.add_column("Version to Restore", style="yellow")
+
+    for name, ver in sorted(snapshot.items())[:10]:  # Show first 10
+        table.add_row(name, ver)
+
+    if len(snapshot) > 10:
+        table.add_row("...", f"...and {len(snapshot) - 10} more packages")
+
+    console.print(table)
+    console.print(f"\n[yellow]Total packages to rollback: {len(packages)}[/yellow]")
+
+    # Confirmation
+    if not force:
+        confirm = typer.confirm(
+            "\nAre you sure you want to rollback to these versions?", default=False
+        )
+        if not confirm:
+            console.print("[yellow]Rollback cancelled[/yellow]")
+            raise typer.Exit(0)
+
+    console.print("\n[yellow]Rolling back packages...[/yellow]")
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             subprocess.run(
                 ["volta", "install"] + packages, cwd=Path(tmpdir), check=True
             )
         console.print("[green]✓ Rollback complete[/green]")
+        console.print(
+            f"[dim]Rolled back {len(packages)} packages to previous versions[/dim]"
+        )
     except subprocess.CalledProcessError as e:
         console.print(f"[red]✗ Rollback failed with code {e.returncode}[/red]")
+        console.print(
+            "[yellow]💡 Some packages may have been partially rolled back[/yellow]"
+        )
         raise typer.Exit(e.returncode)
 
 

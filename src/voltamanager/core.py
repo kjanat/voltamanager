@@ -14,12 +14,19 @@ def check_dependencies() -> bool:
     """Check if required commands are available."""
     if not shutil.which("volta"):
         console.print("[red]✗ volta not found in PATH[/red]")
-        console.print("[yellow]→ Install volta: https://volta.sh[/yellow]")
-        console.print("[yellow]→ Or add volta to PATH[/yellow]")
+        console.print("\n[yellow]To fix this:[/yellow]")
+        console.print(
+            "  1. Install volta: [cyan]curl https://get.volta.sh | bash[/cyan]"
+        )
+        console.print("  2. Or visit: [cyan]https://volta.sh[/cyan]")
+        console.print("  3. Restart your terminal after installation to update PATH")
         return False
     if not shutil.which("npm"):
         console.print("[red]✗ npm not found (needed to query registry)[/red]")
-        console.print("[yellow]→ Install npm or ensure it's in PATH[/yellow]")
+        console.print("\n[yellow]To fix this:[/yellow]")
+        console.print("  1. Install Node.js via volta: [cyan]volta install node[/cyan]")
+        console.print("  2. Or ensure npm is in your PATH")
+        console.print("  3. Verify with: [cyan]which npm[/cyan]")
         return False
     return True
 
@@ -39,7 +46,16 @@ def get_installed_packages(safe_dir: Path) -> List[str]:
             if line.startswith("package "):
                 packages.append(line.split()[1])
         return packages
-    except subprocess.CalledProcessError:
+    except subprocess.CalledProcessError as e:
+        console.print("[red]✗ Failed to get installed packages[/red]")
+        console.print(f"[dim]Error code: {e.returncode}[/dim]")
+        if e.stderr:
+            console.print(
+                f"[dim]{e.stderr.decode() if isinstance(e.stderr, bytes) else e.stderr}[/dim]"
+            )
+        console.print("\n[yellow]💡 Suggestions:[/yellow]")
+        console.print("  • Verify volta is working: [cyan]volta list[/cyan]")
+        console.print("  • Check volta installation: [cyan]volta --version[/cyan]")
         return []
 
 

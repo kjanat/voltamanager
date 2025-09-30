@@ -112,4 +112,5 @@ $ voltamanager rollback [OPTIONS]
 
 **Options**:
 
+* `-f, --force`: Skip confirmation prompt
 * `--help`: Show this message and exit.

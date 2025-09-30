@@ -38,14 +38,28 @@ def display_table(
             status_style = "dim"
 
         status_text = states[i]
-        if states[i] == "OUTDATED" and is_major_update(installed[i], latest[i]):
+        if (
+            states[i] == "OUTDATED"
+            and latest[i] != "?"
+            and is_major_update(installed[i], latest[i])
+        ):
             status_text = f"{states[i]} ⚠"
+
+        # Escape special characters in version strings for rich markup
+        latest_display = latest[i].replace("[", "\\[").replace("]", "\\]")
+        installed_display = installed[i].replace("[", "\\[").replace("]", "\\]")
+
+        # Format status with color if style is provided
+        if status_style:
+            status_formatted = f"[{status_style}]{status_text}[/{status_style}]"
+        else:
+            status_formatted = status_text
 
         table.add_row(
             names[i],
-            installed[i],
-            latest[i],
-            f"[{status_style}]{status_text}[/{status_style}]",
+            installed_display,
+            latest_display,
+            status_formatted,
         )
 
     console.print(table)

@@ -59,6 +59,62 @@ def get_major_updates(
     return major_updates
 
 
+def get_changelog_url(package_name: str) -> str:
+    """Get the changelog URL for a package.
+
+    Args:
+        package_name: Name of the npm package
+
+    Returns:
+        URL to the package's changelog or npm page
+    """
+    # Most packages have changelogs at these common locations
+    return f"https://www.npmjs.com/package/{package_name}?activeTab=versions"
+
+
+def get_minor_updates(
+    names: list[str], installed: list[str], latest: list[str], states: list[str]
+) -> list[tuple[str, str, str]]:
+    """Identify packages with minor version updates.
+
+    Args:
+        names: Package names
+        installed: Installed versions
+        latest: Latest versions
+        states: Package states
+
+    Returns:
+        List of (name, current_version, latest_version) tuples for minor updates
+    """
+    minor_updates = []
+
+    for i, state in enumerate(states):
+        if state == "OUTDATED":
+            current = installed[i]
+            lat = latest[i]
+            if lat != "?" and not is_major_update(current, lat):
+                try:
+                    current_ver = pkg_version.parse(current)
+                    latest_ver = pkg_version.parse(lat)
+
+                    if (
+                        hasattr(current_ver, "release")
+                        and hasattr(latest_ver, "release")
+                        and len(current_ver.release) >= 2
+                        and len(latest_ver.release) >= 2
+                    ):
+                        # Minor update: major same, minor different
+                        if (
+                            current_ver.release[0] == latest_ver.release[0]
+                            and current_ver.release[1] < latest_ver.release[1]
+                        ):
+                            minor_updates.append((names[i], current, lat))
+                except (pkg_version.InvalidVersion, AttributeError, IndexError):
+                    pass
+
+    return minor_updates
+
+
 def check_local_volta_config(verbose: bool = False) -> bool:
     """Check if local package.json has volta configuration.
 

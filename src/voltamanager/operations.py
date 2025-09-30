@@ -19,7 +19,12 @@ from .display import (
 )
 from .config import Config
 from .logger import setup_logger, log_operation, log_error
-from .utils import get_major_updates, check_local_volta_config
+from .utils import (
+    get_major_updates,
+    get_minor_updates,
+    get_changelog_url,
+    check_local_volta_config,
+)
 
 console = Console()
 logger = setup_logger()
@@ -200,14 +205,25 @@ def check_and_update(
 
             # Warn about major version updates
             major_updates = get_major_updates(names, installed, latest, states)
+            minor_updates = get_minor_updates(names, installed, latest, states)
+
             if major_updates:
                 console.print(
                     "\n[yellow]⚠ Major version updates detected (may have breaking changes):[/yellow]"
                 )
-                for pkg_name, current, lat in major_updates:
+                for pkg_name, current, lat in major_updates[:5]:  # Show first 5
+                    changelog = get_changelog_url(pkg_name)
                     console.print(f"  [yellow]• {pkg_name}: {current} → {lat}[/yellow]")
+                    console.print(f"    [dim]{changelog}[/dim]")
+
+                if len(major_updates) > 5:
+                    console.print(
+                        f"  [dim]...and {len(major_updates) - 5} more major updates[/dim]"
+                    )
+
+            if minor_updates and do_update:
                 console.print(
-                    "[dim]  Review changelogs before updating: https://www.npmjs.com/package/<name>[/dim]"
+                    f"\n[cyan]ℹ {len(minor_updates)} minor/patch updates available (typically safe)[/cyan]"
                 )
 
     # Perform updates
