@@ -19,6 +19,7 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 * `main`: Check and upgrade Volta-managed global...
 * `config`: Create default configuration file.
 * `clear-cache`: Clear the npm version cache.
+* `logs`: View voltamanager logs and statistics.
 * `rollback`: Rollback to previous package versions.
 
 ## `voltamanager main`
@@ -82,6 +83,21 @@ $ voltamanager clear-cache [OPTIONS]
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+## `voltamanager logs`
+
+View voltamanager logs and statistics.
+
+**Usage**:
+
+```console
+$ voltamanager logs [OPTIONS]
+```
+
+**Options**:
+
+* `--stats`: Show log statistics
 * `--help`: Show this message and exit.
 
 ## `voltamanager rollback`

@@ -2,25 +2,13 @@
 
 import json
 from typing import List
-from packaging import version
 
 from rich.console import Console
 from rich.table import Table
 
+from .utils import is_major_update
+
 console = Console()
-
-
-def is_major_update(current: str, latest: str) -> bool:
-    """Check if update is a major version bump."""
-    try:
-        current_parsed = version.parse(current)
-        latest_parsed = version.parse(latest)
-        # Type narrowing for mypy
-        if hasattr(current_parsed, 'major') and hasattr(latest_parsed, 'major'):
-            return latest_parsed.major > current_parsed.major  # type: ignore[return-value]
-        return False
-    except Exception:
-        return False
 
 
 def display_table(

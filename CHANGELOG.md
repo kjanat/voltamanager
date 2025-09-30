@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-09-30
+
+### Added
+
+- **Breaking Change Warnings**: Automatic detection and warnings for major version updates
+  - Uses `packaging` library to parse and compare semantic versions
+  - Displays clear warnings when packages have major version bumps
+  - Warns users to review changelogs before updating
+  - Visual indicators (⚠) in status table for major updates
+  - New `utils.py` module with version comparison utilities
+- **Local Volta Config Detection**: Warns when local `package.json` has volta configuration
+  - Detects potential conflicts with global package management
+  - Shows volta config details in verbose mode
+  - Helps prevent unexpected behavior from local project settings
+  - Runs automatically at the start of check operations
+
+### Tests
+
+- Added 17 comprehensive unit tests for new features
+  - Version comparison tests (major/minor/patch detection)
+  - Major update detection with various package states
+  - Volta config detection with different JSON scenarios
+  - Edge case handling (invalid versions, missing files, malformed JSON)
+  - Test coverage now includes all utility functions
+
+### Changed
+
+- `check_and_update()` now accepts `verbose` parameter for detailed output
+- Major version updates are highlighted in the status table
+- Enhanced user safety with proactive warnings about breaking changes
+
 ## [0.3.0] - 2025-09-30
 
 ### Added

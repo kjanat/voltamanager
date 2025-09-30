@@ -122,6 +122,7 @@ def main(
             interactive,
             not no_cache,
             config,
+            verbose,
         )
         raise typer.Exit(code=code)
 
@@ -143,7 +144,7 @@ def clear_cache_command() -> None:
 
 @app.command(name="logs")
 def logs_command(
-    stats: bool = typer.Option(False, "--stats", help="Show log statistics")
+    stats: bool = typer.Option(False, "--stats", help="Show log statistics"),
 ) -> None:
     """View voltamanager logs and statistics."""
     from .logger import LOG_FILE, get_log_stats
@@ -154,9 +155,9 @@ def logs_command(
         console.print(f"  Total entries: {stats_data['total_lines']}")
         console.print(f"  Errors: {stats_data['errors']}")
         console.print(f"  Updates: {stats_data['updates']}")
-        if stats_data['operations']:
+        if stats_data["operations"]:
             console.print("  Operations:")
-            for op, count in stats_data['operations'].items():
+            for op, count in stats_data["operations"].items():
                 console.print(f"    {op}: {count}")
     else:
         if not LOG_FILE.exists():

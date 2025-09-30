@@ -19,6 +19,7 @@ from .display import (
 )
 from .config import Config
 from .logger import setup_logger, log_operation, log_error
+from .utils import get_major_updates, check_local_volta_config
 
 console = Console()
 logger = setup_logger()
@@ -90,8 +91,12 @@ def check_and_update(
     interactive: bool,
     use_cache: bool,
     config: Config,
+    verbose: bool = False,
 ) -> int:
     """Check versions and optionally update packages."""
+
+    # Check for local volta configuration
+    check_local_volta_config(verbose)
 
     names = []
     installed = []
@@ -192,6 +197,18 @@ def check_and_update(
         else:
             display_table(names, installed, latest, states, outdated_only)
             display_statistics(states)
+
+            # Warn about major version updates
+            major_updates = get_major_updates(names, installed, latest, states)
+            if major_updates:
+                console.print(
+                    "\n[yellow]⚠ Major version updates detected (may have breaking changes):[/yellow]"
+                )
+                for pkg_name, current, lat in major_updates:
+                    console.print(f"  [yellow]• {pkg_name}: {current} → {lat}[/yellow]")
+                console.print(
+                    "[dim]  Review changelogs before updating: https://www.npmjs.com/package/<name>[/dim]"
+                )
 
     # Perform updates
     if do_update:
