@@ -22,6 +22,8 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 * `logs`: View voltamanager logs and statistics.
 * `rollback`: Rollback to previous package versions.
 * `bench`: Benchmark npm registry query performance.
+* `health`: Check the health of your volta installation.
+* `audit`: Run security audit on installed packages.
 * `pin`: Pin packages to prevent updates (adds to...
 * `info`: Show detailed information about a package.
 
@@ -144,6 +146,50 @@ $ voltamanager bench [OPTIONS]
 **Options**:
 
 * `-p, --packages INTEGER`: Number of test packages to check  [default: 10]
+* `--help`: Show this message and exit.
+
+## `voltamanager health`
+
+Check the health of your volta installation.
+
+Verifies that volta, npm, and node are properly installed and configured.
+Useful for troubleshooting installation issues.
+
+Examples:
+    voltamanager health    # Run health check
+
+**Usage**:
+
+```console
+$ voltamanager health [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `voltamanager audit`
+
+Run security audit on installed packages.
+
+Checks all volta-managed packages for known security vulnerabilities
+using npm audit.
+
+Examples:
+    voltamanager audit              # Basic audit
+    voltamanager audit -v           # Detailed vulnerability info
+    voltamanager audit --critical-only  # Only fail on critical vulns
+
+**Usage**:
+
+```console
+$ voltamanager audit [OPTIONS]
+```
+
+**Options**:
+
+* `-v, --verbose`: Show detailed vulnerability information
+* `--critical-only`: Exit with error only if critical vulnerabilities found
 * `--help`: Show this message and exit.
 
 ## `voltamanager pin`

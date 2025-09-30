@@ -76,3 +76,178 @@ def parse_package(name_ver: str) -> Tuple[str, str]:
 
     parts = name_ver.split("@")
     return parts[0], parts[1] if len(parts) > 1 else ""
+
+
+def check_volta_health() -> dict[str, bool | str | int | list[str] | None]:
+    """Perform comprehensive health check of volta installation.
+
+    Returns:
+        Dictionary containing health check results
+    """
+
+    results: dict[str, bool | str | int | list[str] | None] = {
+        "volta_installed": False,
+        "npm_installed": False,
+        "volta_version": None,
+        "npm_version": None,
+        "node_version": None,
+        "volta_home": None,
+        "packages_count": 0,
+        "issues": [],
+    }
+
+    # Check volta
+    volta_path = shutil.which("volta")
+    if volta_path:
+        results["volta_installed"] = True
+        try:
+            result = subprocess.run(
+                ["volta", "--version"],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=5,
+            )
+            results["volta_version"] = result.stdout.strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            results["issues"].append("Cannot determine volta version")
+    else:
+        results["issues"].append("volta not found in PATH")
+
+    # Check npm
+    npm_path = shutil.which("npm")
+    if npm_path:
+        results["npm_installed"] = True
+        try:
+            result = subprocess.run(
+                ["npm", "--version"],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=5,
+            )
+            results["npm_version"] = result.stdout.strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            results["issues"].append("Cannot determine npm version")
+    else:
+        results["issues"].append("npm not found in PATH")
+
+    # Check node
+    node_path = shutil.which("node")
+    if node_path:
+        try:
+            result = subprocess.run(
+                ["node", "--version"],
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=5,
+            )
+            results["node_version"] = result.stdout.strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            results["issues"].append("Cannot determine node version")
+    else:
+        results["issues"].append("node not found in PATH")
+
+    # Check VOLTA_HOME
+    import os
+
+    volta_home = os.environ.get("VOLTA_HOME")
+    if volta_home:
+        results["volta_home"] = volta_home
+        if not Path(volta_home).exists():
+            results["issues"].append(
+                f"VOLTA_HOME directory does not exist: {volta_home}"
+            )
+    else:
+        results["issues"].append("VOLTA_HOME environment variable not set")
+
+    # Check installed packages count
+    if results["volta_installed"]:
+        try:
+            import tempfile
+
+            with tempfile.TemporaryDirectory() as tmpdir:
+                packages = get_installed_packages(Path(tmpdir))
+                results["packages_count"] = len(packages)
+        except Exception:
+            results["issues"].append("Cannot list installed packages")
+
+    return results
+
+
+def display_health_check(
+    results: dict[str, bool | str | int | list[str] | None],
+) -> None:
+    """Display health check results in formatted output.
+
+    Args:
+        results: Health check results dictionary
+    """
+    from rich.table import Table
+
+    console.print("\n[bold]Volta Manager Health Check[/bold]\n")
+
+    # Status table
+    status_table = Table(show_header=False)
+    status_table.add_column("Component", style="cyan")
+    status_table.add_column("Status")
+    status_table.add_column("Version/Value", style="dim")
+
+    # Volta
+    volta_status = (
+        "[green]✓ Installed[/green]"
+        if results["volta_installed"]
+        else "[red]✗ Missing[/red]"
+    )
+    status_table.add_row("Volta", volta_status, results.get("volta_version") or "")
+
+    # npm
+    npm_status = (
+        "[green]✓ Installed[/green]"
+        if results["npm_installed"]
+        else "[red]✗ Missing[/red]"
+    )
+    status_table.add_row("npm", npm_status, results.get("npm_version") or "")
+
+    # Node
+    node_status = (
+        "[green]✓ Installed[/green]"
+        if results["node_version"]
+        else "[yellow]⚠ Not found[/yellow]"
+    )
+    status_table.add_row("Node.js", node_status, results.get("node_version") or "")
+
+    # VOLTA_HOME
+    volta_home_status = (
+        "[green]✓ Set[/green]"
+        if results["volta_home"]
+        else "[yellow]⚠ Not set[/yellow]"
+    )
+    status_table.add_row(
+        "VOLTA_HOME", volta_home_status, results.get("volta_home") or ""
+    )
+
+    # Packages
+    pkg_count = results.get("packages_count", 0)
+    status_table.add_row("Managed Packages", f"[cyan]{pkg_count}[/cyan]", "")
+
+    console.print(status_table)
+
+    # Issues
+    if results["issues"]:
+        console.print("\n[yellow]⚠ Issues Detected:[/yellow]")
+        for issue in results["issues"]:
+            console.print(f"  • {issue}")
+    else:
+        console.print(
+            "\n[green]✓ All checks passed - your volta setup looks healthy![/green]"
+        )
+
+    # Recommendations
+    if not results["volta_installed"]:
+        console.print("\n[yellow]Recommendation:[/yellow]")
+        console.print("  Install volta: [cyan]curl https://get.volta.sh | bash[/cyan]")
+    elif not results["npm_installed"]:
+        console.print("\n[yellow]Recommendation:[/yellow]")
+        console.print("  Install Node.js: [cyan]volta install node[/cyan]")

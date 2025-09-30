@@ -419,6 +419,100 @@ def benchmark(
     )
 
 
+@app.command(name="health")
+def health_check() -> None:
+    """Check the health of your volta installation.
+
+    Verifies that volta, npm, and node are properly installed and configured.
+    Useful for troubleshooting installation issues.
+
+    Examples:
+        voltamanager health    # Run health check
+    """
+    from .core import check_volta_health, display_health_check
+
+    results = check_volta_health()
+    display_health_check(results)
+
+    # Exit with error code if critical issues found
+    critical_issues = ["volta not found in PATH", "npm not found in PATH"]
+    has_critical = any(issue in results["issues"] for issue in critical_issues)
+
+    if has_critical:
+        raise typer.Exit(1)
+
+
+@app.command(name="audit")
+def security_audit(
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Show detailed vulnerability information"
+    ),
+    critical_only: bool = typer.Option(
+        False,
+        "--critical-only",
+        help="Exit with error only if critical vulnerabilities found",
+    ),
+) -> None:
+    """Run security audit on installed packages.
+
+    Checks all volta-managed packages for known security vulnerabilities
+    using npm audit.
+
+    Examples:
+        voltamanager audit              # Basic audit
+        voltamanager audit -v           # Detailed vulnerability info
+        voltamanager audit --critical-only  # Only fail on critical vulns
+    """
+    from .security import check_package_vulnerabilities
+    from .core import get_installed_packages, parse_package, check_dependencies
+
+    # Check dependencies first
+    if not check_dependencies():
+        raise typer.Exit(127)
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        safe_dir = Path(tmpdir)
+
+        # Get installed packages
+        namevers = get_installed_packages(safe_dir)
+        if not namevers:
+            console.print("[yellow]No packages to audit[/yellow]")
+            raise typer.Exit(0)
+
+        # Extract package names
+        packages = []
+        for name_ver in namevers:
+            name, ver = parse_package(name_ver)
+            if ver != "project":  # Skip project-pinned packages
+                packages.append(name)
+
+        if not packages:
+            console.print(
+                "[yellow]No packages to audit (only project-pinned found)[/yellow]"
+            )
+            raise typer.Exit(0)
+
+        console.print(f"[dim]Auditing {len(packages)} packages...[/dim]\n")
+
+        # Run security audit
+        has_critical, audit_data = check_package_vulnerabilities(
+            packages, safe_dir, verbose
+        )
+
+        # Exit with error if critical vulnerabilities found and flag set
+        if critical_only and has_critical:
+            console.print("\n[red]✗ Critical vulnerabilities detected[/red]")
+            raise typer.Exit(1)
+        elif (
+            audit_data
+            and audit_data.get("metadata", {})
+            .get("vulnerabilities", {})
+            .get("total", 0)
+            > 0
+        ):
+            raise typer.Exit(1)
+
+
 @app.command(name="pin")
 def pin_package(
     packages: list[str] = typer.Argument(..., help="Package names to pin"),
