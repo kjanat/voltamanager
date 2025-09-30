@@ -22,6 +22,8 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 * `logs`: View voltamanager logs and statistics.
 * `rollback`: Rollback to previous package versions.
 * `bench`: Benchmark npm registry query performance.
+* `pin`: Pin packages to prevent updates (adds to...
+* `info`: Show detailed information about a package.
 
 ## `voltamanager main`
 
@@ -108,11 +110,20 @@ $ voltamanager logs [OPTIONS]
 
 Rollback to previous package versions.
 
+Examples:
+    voltamanager rollback              # Rollback all packages
+    voltamanager rollback typescript   # Rollback only typescript
+    voltamanager rollback eslint prettier --force  # Rollback multiple without confirmation
+
 **Usage**:
 
 ```console
-$ voltamanager rollback [OPTIONS]
+$ voltamanager rollback [OPTIONS] [PACKAGES]...
 ```
+
+**Arguments**:
+
+* `[PACKAGES]...`: Specific packages to rollback (empty for all)
 
 **Options**:
 
@@ -132,4 +143,49 @@ $ voltamanager bench [OPTIONS]
 **Options**:
 
 * `-p, --packages INTEGER`: Number of test packages to check  [default: 10]
+* `--help`: Show this message and exit.
+
+## `voltamanager pin`
+
+Pin packages to prevent updates (adds to config exclude list).
+
+Examples:
+    voltamanager pin typescript eslint    # Pin typescript and eslint
+    voltamanager pin --unpin typescript   # Unpin typescript
+
+**Usage**:
+
+```console
+$ voltamanager pin [OPTIONS] PACKAGES...
+```
+
+**Arguments**:
+
+* `PACKAGES...`: Package names to pin  [required]
+
+**Options**:
+
+* `--unpin`: Remove packages from pin list
+* `--help`: Show this message and exit.
+
+## `voltamanager info`
+
+Show detailed information about a package.
+
+Examples:
+    voltamanager info typescript
+    voltamanager info @vue/cli
+
+**Usage**:
+
+```console
+$ voltamanager info [OPTIONS] PACKAGE
+```
+
+**Arguments**:
+
+* `PACKAGE`: Package name to get information about  [required]
+
+**Options**:
+
 * `--help`: Show this message and exit.

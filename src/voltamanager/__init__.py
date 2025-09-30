@@ -218,9 +218,18 @@ def logs_command(
 
 @app.command(name="rollback")
 def rollback(
+    packages: list[str] = typer.Argument(
+        None, help="Specific packages to rollback (empty for all)"
+    ),
     force: bool = typer.Option(False, "--force", "-f", help="Skip confirmation prompt"),
 ) -> None:
-    """Rollback to previous package versions."""
+    """Rollback to previous package versions.
+
+    Examples:
+        voltamanager rollback              # Rollback all packages
+        voltamanager rollback typescript   # Rollback only typescript
+        voltamanager rollback eslint prettier --force  # Rollback multiple without confirmation
+    """
     import json
     import subprocess
     from pathlib import Path
@@ -235,7 +244,30 @@ def rollback(
         raise typer.Exit(1)
 
     snapshot = json.loads(snapshot_file.read_text())
-    packages = [f"{name}@{ver}" for name, ver in snapshot.items()]
+
+    # Filter packages if specific ones requested
+    if packages:
+        filtered_snapshot = {
+            name: ver for name, ver in snapshot.items() if name in packages
+        }
+        if not filtered_snapshot:
+            console.print(
+                "[red]✗ None of the specified packages found in snapshot[/red]"
+            )
+            console.print(
+                f"[dim]Available: {', '.join(sorted(snapshot.keys())[:5])}...[/dim]"
+            )
+            raise typer.Exit(1)
+
+        missing = set(packages) - set(filtered_snapshot.keys())
+        if missing:
+            console.print(
+                f"[yellow]⚠ Packages not in snapshot (will be skipped): {', '.join(missing)}[/yellow]"
+            )
+
+        snapshot = filtered_snapshot
+
+    packages_to_install = [f"{name}@{ver}" for name, ver in snapshot.items()]
 
     # Show what will be rolled back
     console.print("\n[bold]Rollback Preview:[/bold]")
@@ -250,7 +282,9 @@ def rollback(
         table.add_row("...", f"...and {len(snapshot) - 10} more packages")
 
     console.print(table)
-    console.print(f"\n[yellow]Total packages to rollback: {len(packages)}[/yellow]")
+    console.print(
+        f"\n[yellow]Total packages to rollback: {len(packages_to_install)}[/yellow]"
+    )
 
     # Confirmation
     if not force:
@@ -265,11 +299,11 @@ def rollback(
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             subprocess.run(
-                ["volta", "install"] + packages, cwd=Path(tmpdir), check=True
+                ["volta", "install"] + packages_to_install, cwd=Path(tmpdir), check=True
             )
         console.print("[green]✓ Rollback complete[/green]")
         console.print(
-            f"[dim]Rolled back {len(packages)} packages to previous versions[/dim]"
+            f"[dim]Rolled back {len(packages_to_install)} packages to previous versions[/dim]"
         )
     except subprocess.CalledProcessError as e:
         console.print(f"[red]✗ Rollback failed with code {e.returncode}[/red]")
@@ -376,6 +410,158 @@ def benchmark(
     console.print(
         "[green]💡 Recommendation:[/green] Use parallel mode (default) for best performance"
     )
+
+
+@app.command(name="pin")
+def pin_package(
+    packages: list[str] = typer.Argument(..., help="Package names to pin"),
+    unpin: bool = typer.Option(False, "--unpin", help="Remove packages from pin list"),
+) -> None:
+    """Pin packages to prevent updates (adds to config exclude list).
+
+    Examples:
+        voltamanager pin typescript eslint    # Pin typescript and eslint
+        voltamanager pin --unpin typescript   # Unpin typescript
+    """
+    from .config import Config
+
+    config = Config()
+
+    if unpin:
+        # Remove from exclude list
+        removed = []
+        for pkg in packages:
+            if pkg in config.exclude:
+                config.exclude.remove(pkg)
+                removed.append(pkg)
+
+        if removed:
+            config.save()
+            console.print(
+                f"[green]✓ Unpinned {len(removed)} package(s): {', '.join(removed)}[/green]"
+            )
+        else:
+            console.print("[yellow]None of the specified packages were pinned[/yellow]")
+    else:
+        # Add to exclude list
+        added = []
+        for pkg in packages:
+            if pkg not in config.exclude:
+                config.exclude.append(pkg)
+                added.append(pkg)
+
+        if added:
+            config.save()
+            console.print(
+                f"[green]✓ Pinned {len(added)} package(s): {', '.join(added)}[/green]"
+            )
+            console.print(
+                "[dim]These packages will be excluded from future updates[/dim]"
+            )
+        else:
+            console.print("[yellow]All specified packages were already pinned[/yellow]")
+
+    # Show current pinned packages
+    if config.exclude:
+        console.print("\n[bold]Currently pinned packages:[/bold]")
+        for pkg in sorted(config.exclude):
+            console.print(f"  [cyan]• {pkg}[/cyan]")
+
+
+@app.command(name="info")
+def package_info(
+    package: str = typer.Argument(..., help="Package name to get information about"),
+) -> None:
+    """Show detailed information about a package.
+
+    Examples:
+        voltamanager info typescript
+        voltamanager info @vue/cli
+    """
+    import subprocess
+    import json
+    from pathlib import Path
+
+    console.print(f"[cyan]Fetching information for {package}...[/cyan]\n")
+
+    try:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            safe_dir = Path(tmpdir)
+
+            # Get full package info from npm
+            result = subprocess.run(
+                ["npm", "view", package, "--json"],
+                cwd=safe_dir,
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=10,
+            )
+
+            data = json.loads(result.stdout)
+
+            # Display basic info
+            console.print(
+                f"[bold]Package:[/bold] [cyan]{data.get('name', package)}[/cyan]"
+            )
+            console.print(f"[bold]Description:[/bold] {data.get('description', 'N/A')}")
+            console.print(
+                f"[bold]Latest Version:[/bold] [green]{data.get('version', 'N/A')}[/green]"
+            )
+
+            # License
+            license_info = data.get("license", "N/A")
+            console.print(f"[bold]License:[/bold] {license_info}")
+
+            # Links
+            if homepage := data.get("homepage"):
+                console.print(f"[bold]Homepage:[/bold] {homepage}")
+
+            if repo := data.get("repository"):
+                if isinstance(repo, dict):
+                    repo_url = repo.get("url", "")
+                else:
+                    repo_url = repo
+                console.print(f"[bold]Repository:[/bold] {repo_url}")
+
+            # Maintainers
+            if maintainers := data.get("maintainers"):
+                console.print("\n[bold]Maintainers:[/bold]")
+                for m in maintainers[:3]:  # Show first 3
+                    name = m.get("name", "Unknown")
+                    email = m.get("email", "")
+                    console.print(f"  • {name} {f'<{email}>' if email else ''}")
+
+            # Time info
+            if time_data := data.get("time"):
+                modified = time_data.get("modified", "")
+                created = time_data.get("created", "")
+                if created:
+                    console.print(f"\n[bold]Created:[/bold] {created.split('T')[0]}")
+                if modified:
+                    console.print(
+                        f"[bold]Last Modified:[/bold] {modified.split('T')[0]}"
+                    )
+
+            # Dependencies
+            if deps := data.get("dependencies"):
+                console.print(f"\n[bold]Dependencies:[/bold] {len(deps)} packages")
+
+            # Note: npm doesn't provide download stats directly via CLI
+            # Would need to query npm registry API separately
+            console.print(
+                f"\n[dim]💡 For download stats, visit: https://www.npmjs.com/package/{package}[/dim]"
+            )
+
+    except subprocess.CalledProcessError:
+        console.print(f"[red]✗ Package '{package}' not found or npm query failed[/red]")
+        raise typer.Exit(1)
+    except json.JSONDecodeError:
+        console.print("[red]✗ Failed to parse npm response[/red]")
+        raise typer.Exit(1)
+    except subprocess.TimeoutExpired:
+        console.print("[red]✗ npm query timed out[/red]")
+        raise typer.Exit(1)
 
 
 if __name__ == "__main__":

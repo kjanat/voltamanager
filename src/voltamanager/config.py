@@ -73,6 +73,28 @@ class Config:
         """Check if a package should be excluded from operations."""
         return package_name in self.exclude
 
+    def save(self) -> None:
+        """Save current configuration to file."""
+        CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+        # Format exclude list
+        exclude_str = ", ".join(f'"{pkg}"' for pkg in self.exclude)
+
+        config_content = f"""[voltamanager]
+# Packages to exclude from all operations
+exclude = [{exclude_str}]
+
+# Include project-pinned packages by default
+include_project = {str(self.include_project).lower()}
+
+# Cache time-to-live in hours
+cache_ttl_hours = {self.cache_ttl_hours}
+
+# Number of parallel npm registry checks
+parallel_checks = {self.parallel_checks}
+"""
+        CONFIG_FILE.write_text(config_content)
+
 
 def create_default_config() -> None:
     """Create a default configuration file."""

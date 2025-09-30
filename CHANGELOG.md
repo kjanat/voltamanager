@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2025-09-30
+
+### Added
+
+- **Selective Rollback**: Target specific packages for rollback instead of all
+
+  - `voltamanager rollback [PACKAGES...]`: Rollback one or more specific packages
+  - `voltamanager rollback`: Continue to support rolling back all packages (original behavior)
+  - Warnings when requested packages aren't in snapshot
+  - Preview table shows exactly which packages will be rolled back
+  - Examples: `voltamanager rollback typescript eslint --force`
+
+- **Pin/Unpin Commands**: Persistent package exclusion management
+
+  - `voltamanager pin [PACKAGES...]`: Add packages to exclude list (prevent updates)
+  - `voltamanager pin --unpin [PACKAGES...]`: Remove packages from exclude list
+  - Automatically updates config file with changes
+  - Display currently pinned packages after operation
+  - Preserves other configuration values
+  - Examples: `voltamanager pin typescript eslint`, `voltamanager pin --unpin prettier`
+
+- **Package Info Command**: Detailed package information lookup
+
+  - `voltamanager info <package>`: Show comprehensive package metadata
+  - Displays description, latest version, license, homepage, repository
+  - Shows maintainer information (first 3)
+  - Creation and last modified dates
+  - Dependency count
+  - Links to npm page for download stats
+  - Examples: `voltamanager info typescript`, `voltamanager info @vue/cli`
+
+- **Config Save Method**: `Config.save()` for programmatic configuration updates
+
+### Tests
+
+- Added 7 tests for pin/unpin functionality (pin_test.py)
+- Added 10 tests for selective rollback (rollback_selective_test.py)
+- Total test count: 213 → 230 tests (+17 tests)
+- Overall coverage: 87.79% (230/230 tests passing)
+- cache.py: 100% coverage
+- config.py: 94.94% coverage
+- display.py: 100% coverage
+- logger.py: 100% coverage
+
+### Changed
+
+- Rollback command now accepts optional package arguments
+- Config class now has save() method for writing changes back to file
+
 ## [0.9.0] - 2025-09-30
 
 ### Added
