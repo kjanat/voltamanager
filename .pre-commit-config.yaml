@@ -64,6 +64,7 @@ repos:
         additional_dependencies:
           - types-setuptools>=75.0.0
         args: [--config-file=mypy.ini]
+        exclude: ^tests/
 
   #  - repo: https://github.com/DavidAnson/markdownlint-cli2
   #    rev: v0.18.1

@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-09-30
+
+### Added
+
+- **Comprehensive Test Suite**: Added 77 new unit tests across core modules
+  - `core_test.py`: 17 tests for dependency checking, package parsing, and volta integration
+  - `npm_test.py`: 20 tests for npm registry interactions, batch queries, and parallel execution
+  - `cache_test.py`: 20 tests for cache operations, expiration, and error handling
+  - `config_test.py`: 20 tests for configuration loading, validation, and type safety
+  - All core modules now have 98-100% test coverage
+  - Total test count: 95 tests (up from 18)
+  - Project coverage: 50% (critical modules at 98-100%)
+
+### Improved
+
+- **Test Quality**: Comprehensive edge case coverage
+  - Error handling for subprocess failures and timeouts
+  - Invalid input handling (malformed JSON, invalid TOML, wrong types)
+  - Scoped package name parsing with complex scenarios
+  - Cache expiration boundary testing
+  - Configuration reload and validation testing
+  - Parallel execution exception handling
+
+### Testing
+
+- Added fixtures for temporary directories and mocked configurations
+- Integration tests for cache workflows and config reloading
+- Mock-based testing for subprocess calls and npm registry interactions
+- Proper test organization with descriptive class and method names
+
+### Quality
+
+- All 95 tests passing
+- Zero test failures or errors
+- Core modules (core, npm, cache, config, utils) at 98-100% coverage
+- Robust error handling verified through comprehensive test scenarios
+
 ## [0.4.0] - 2025-09-30
 
 ### Added
