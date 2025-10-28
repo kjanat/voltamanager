@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2025-09-30
+
+### Added
+
+- **Breaking Changes Command**: New `voltamanager breaking-changes [PACKAGES...]` command to analyze packages for major version updates, with direct links to changelogs.
+
+### Changed
+
+- **Version Comparison**: Enhanced `utils.py` with `get_major_updates()`, `get_minor_updates()`, and `get_changelog_url()` for better breaking change analysis.
+- **CLI**: Improved error messages and table formatting for the new `breaking-changes` command.
+
+### Tests
+
+- Added 18 new tests for `info` and `breaking-changes` commands, increasing test coverage to 91.12% (+4.55%).
+
+## [0.12.0] - 2025-09-30
+
+### Added
+
+- **Security Audit Command**: New `voltamanager audit` command to scan for vulnerabilities using `npm audit`.
+- **Health Check Command**: New `voltamanager health` command to verify Volta installation and environment.
+
+### Changed
+
+- Breaking change indicators (⚠) are now more prominently documented.
+
+### Internal Improvements
+
+- Added `src/voltamanager/security.py` for audit functionality and health check logic to `src/voltamanager/core.py`.
+
+### Tests
+
+- Added 24 new tests for health and security commands, increasing test coverage to 86.57% (+0.73%).
+
 ## [0.11.0] - 2025-09-30
 
 ### Added
