@@ -85,9 +85,9 @@ def display_json(
 
 def display_statistics(
     states: List[str],
-    names: List[str] = None,
-    installed: List[str] = None,
-    latest: List[str] = None,
+    names: List[str] | None = None,
+    installed: List[str] | None = None,
+    latest: List[str] | None = None,
 ) -> None:
     """Display summary statistics with enhanced reporting."""
     from .utils import is_major_update, is_minor_update

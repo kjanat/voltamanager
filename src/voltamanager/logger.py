@@ -4,7 +4,17 @@ import logging
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import Any
+from typing import Any, TypedDict
+
+
+class LogStats(TypedDict):
+    """Type definition for log statistics."""
+
+    total_lines: int
+    operations: dict[str, int]
+    errors: int
+    updates: int
+
 
 # Configure logging directory
 LOG_DIR = Path.home() / ".voltamanager"
@@ -115,16 +125,16 @@ def log_error(logger: logging.Logger, message: str, **kwargs: Any) -> None:
     logger.error(message, extra=kwargs)
 
 
-def get_log_stats() -> dict[str, Any]:
+def get_log_stats() -> LogStats:
     """Get statistics from the log file.
 
     Returns:
         Dictionary with log statistics
     """
     if not LOG_FILE.exists():
-        return {"total_lines": 0, "operations": {}, "errors": 0}
+        return {"total_lines": 0, "operations": {}, "errors": 0, "updates": 0}
 
-    stats: dict[str, Any] = {
+    stats: LogStats = {
         "total_lines": 0,
         "operations": {},
         "errors": 0,

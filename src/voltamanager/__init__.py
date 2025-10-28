@@ -5,7 +5,12 @@ from pathlib import Path
 
 import typer
 
-from .core import check_dependencies, get_installed_packages, parse_package
+from .core import (
+    check_dependencies,
+    get_installed_packages,
+    parse_package,
+    HealthCheckResult as HealthCheckResult,
+)
 from .operations import fast_install, check_and_update
 from .config import Config, create_default_config
 from .cache import clear_cache

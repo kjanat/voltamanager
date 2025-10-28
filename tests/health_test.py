@@ -3,7 +3,10 @@
 import subprocess
 from unittest.mock import MagicMock, patch
 
-from voltamanager.core import check_volta_health, display_health_check
+from voltamanager.core import (
+    check_volta_health,
+    display_health_check,
+)
 
 
 def test_check_volta_health_all_good():

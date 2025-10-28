@@ -3,9 +3,23 @@
 import shutil
 import subprocess
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, TypedDict
 
 from rich.console import Console
+
+
+class HealthCheckResult(TypedDict):
+    """Type definition for health check results."""
+
+    volta_installed: bool
+    npm_installed: bool
+    volta_version: str | None
+    npm_version: str | None
+    node_version: str | None
+    volta_home: str | None
+    packages_count: int
+    issues: list[str]
+
 
 console = Console()
 
@@ -78,14 +92,14 @@ def parse_package(name_ver: str) -> Tuple[str, str]:
     return parts[0], parts[1] if len(parts) > 1 else ""
 
 
-def check_volta_health() -> dict[str, bool | str | int | list[str] | None]:
+def check_volta_health() -> HealthCheckResult:
     """Perform comprehensive health check of volta installation.
 
     Returns:
         Dictionary containing health check results
     """
 
-    results: dict[str, bool | str | int | list[str] | None] = {
+    results: HealthCheckResult = {
         "volta_installed": False,
         "npm_installed": False,
         "volta_version": None,
@@ -176,9 +190,7 @@ def check_volta_health() -> dict[str, bool | str | int | list[str] | None]:
     return results
 
 
-def display_health_check(
-    results: dict[str, bool | str | int | list[str] | None],
-) -> None:
+def display_health_check(results: HealthCheckResult) -> None:
     """Display health check results in formatted output.
 
     Args:

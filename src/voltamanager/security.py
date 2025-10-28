@@ -4,6 +4,7 @@ import subprocess
 import json
 from pathlib import Path
 from dataclasses import dataclass
+from typing import Any
 
 from rich.console import Console
 from rich.table import Table
@@ -23,7 +24,7 @@ class Vulnerability:
     range: str
 
 
-def run_npm_audit(safe_dir: Path, packages: list[str]) -> dict[str, object] | None:
+def run_npm_audit(safe_dir: Path, packages: list[str]) -> dict[str, Any] | None:
     """Run npm audit on specified packages.
 
     Args:
@@ -217,7 +218,7 @@ def display_audit_results(audit_data: dict, verbose: bool = False) -> None:
 
 def check_package_vulnerabilities(
     packages: list[str], safe_dir: Path, verbose: bool = False
-) -> tuple[bool, dict | None]:
+) -> tuple[bool, dict[str, Any] | None]:
     """Check packages for known security vulnerabilities.
 
     Args:

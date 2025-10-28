@@ -10,47 +10,6 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
-* `--install-completion`: Install completion for the current shell.
-* `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
-* `--help`: Show this message and exit.
-
-**Commands**:
-
-* `main`: Check and upgrade Volta-managed global...
-* `config`: Create default configuration file.
-* `clear-cache`: Clear the npm version cache.
-* `logs`: View voltamanager logs and statistics.
-* `rollback`: Rollback to previous package versions.
-* `bench`: Benchmark npm registry query performance.
-* `health`: Check the health of your volta installation.
-* `audit`: Run security audit on installed packages.
-* `pin`: Pin packages to prevent updates (adds to...
-* `info`: Show detailed information about a package.
-* `breaking-changes`: Analyze packages with major version...
-
-## `voltamanager main`
-
-Check and upgrade Volta-managed global packages.
-
-By default, shows the current status of all installed packages.
-Use --update to actually update outdated packages.
-
-Examples:
-    voltamanager                    # Check all packages
-    voltamanager --update           # Update outdated packages
-    voltamanager --outdated-only    # Show only outdated packages
-    voltamanager --json             # Output as JSON
-    voltamanager -u -i              # Interactively select updates
-    voltamanager --no-cache         # Force fresh npm queries
-
-**Usage**:
-
-```console
-$ voltamanager main [OPTIONS]
-```
-
-**Options**:
-
 * `-f, --force`: Skip version check and force update all packages
 * `-u, --update`: Update outdated packages
 * `--dry`: Show what would be done without doing it
@@ -62,7 +21,22 @@ $ voltamanager main [OPTIONS]
 * `-v, --verbose`: Verbose output with additional details
 * `-q, --quiet`: Minimal output (suppress tables unless updating)
 * `-a, --all-packages`: Show all packages including excluded ones
+* `--install-completion`: Install completion for the current shell.
+* `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
 * `--help`: Show this message and exit.
+
+**Commands**:
+
+* `config`: Create default configuration file.
+* `clear-cache`: Clear the npm version cache.
+* `logs`: View voltamanager logs and statistics.
+* `rollback`: Rollback to previous package versions.
+* `bench`: Benchmark npm registry query performance.
+* `health`: Check the health of your volta installation.
+* `audit`: Run security audit on installed packages.
+* `pin`: Pin packages to prevent updates (adds to...
+* `info`: Show detailed information about a package.
+* `breaking-changes`: Analyze packages with major version...
 
 ## `voltamanager config`
 
