@@ -4,39 +4,39 @@ Check and upgrade Volta-managed global packages
 
 **Usage**:
 
-```bash
-voltamanager [OPTIONS] COMMAND [ARGS]...
+```console
+$ voltamanager [OPTIONS] COMMAND [ARGS]...
 ```
 
 **Options**:
 
-- `-f, --force`: Skip version check and force update all packages
-- `-u, --update`: Update outdated packages
-- `--dry`: Show what would be done without doing it
-- `--include-project`: Include project-pinned packages in operations
-- `--json`: Output in JSON format
-- `--outdated-only`: Show only outdated packages
-- `-i, --interactive`: Interactively select packages to update
-- `--no-cache`: Bypass version cache and query npm directly
-- `-v, --verbose`: Verbose output with additional details
-- `-q, --quiet`: Minimal output (suppress tables unless updating)
-- `-a, --all-packages`: Show all packages including excluded ones
-- `--install-completion`: Install completion for the current shell.
-- `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
-- `--help`: Show this message and exit.
+* `-f, --force`: Skip version check and force update all packages
+* `-u, --update`: Update outdated packages
+* `--dry`: Show what would be done without doing it
+* `--include-project`: Include project-pinned packages in operations
+* `--json`: Output in JSON format
+* `--outdated-only`: Show only outdated packages
+* `-i, --interactive`: Interactively select packages to update
+* `--no-cache`: Bypass version cache and query npm directly
+* `-v, --verbose`: Verbose output with additional details
+* `-q, --quiet`: Minimal output (suppress tables unless updating)
+* `-a, --all-packages`: Show all packages including excluded ones
+* `--install-completion`: Install completion for the current shell.
+* `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
+* `--help`: Show this message and exit.
 
 **Commands**:
 
-- `config`: Create default configuration file.
-- `clear-cache`: Clear the npm version cache.
-- `logs`: View voltamanager logs and statistics.
-- `rollback`: Rollback to previous package versions.
-- `bench`: Benchmark npm registry query performance.
-- `health`: Check the health of your volta installation.
-- `audit`: Run security audit on installed packages.
-- `pin`: Pin packages to prevent updates (adds to...
-- `info`: Show detailed information about a package.
-- `breaking-changes`: Analyze packages with major version...
+* `config`: Create default configuration file.
+* `clear-cache`: Clear the npm version cache.
+* `logs`: View voltamanager logs and statistics.
+* `rollback`: Rollback to previous package versions.
+* `bench`: Benchmark npm registry query performance.
+* `health`: Check the health of your volta installation.
+* `audit`: Run security audit on installed packages.
+* `pin`: Pin packages to prevent updates (adds to...
+* `info`: Show detailed information about a package.
+* `breaking-changes`: Analyze packages with major version...
 
 ## `voltamanager config`
 
@@ -44,13 +44,13 @@ Create default configuration file.
 
 **Usage**:
 
-```bash
-voltamanager config [OPTIONS]
+```console
+$ voltamanager config [OPTIONS]
 ```
 
 **Options**:
 
-- `--help`: Show this message and exit.
+* `--help`: Show this message and exit.
 
 ## `voltamanager clear-cache`
 
@@ -58,13 +58,13 @@ Clear the npm version cache.
 
 **Usage**:
 
-```bash
-voltamanager clear-cache [OPTIONS]
+```console
+$ voltamanager clear-cache [OPTIONS]
 ```
 
 **Options**:
 
-- `--help`: Show this message and exit.
+* `--help`: Show this message and exit.
 
 ## `voltamanager logs`
 
@@ -72,43 +72,41 @@ View voltamanager logs and statistics.
 
 **Usage**:
 
-```bash
-voltamanager logs [OPTIONS]
+```console
+$ voltamanager logs [OPTIONS]
 ```
 
 **Options**:
 
-- `--stats`: Show log statistics
-- `-n, --tail INTEGER`: Number of log lines to show (default: 20) [default: 20]
-- `--clear`: Clear all log files
-- `-s, --search TEXT`: Search logs for specific text
-- `--help`: Show this message and exit.
+* `--stats`: Show log statistics
+* `-n, --tail INTEGER`: Number of log lines to show (default: 20)  [default: 20]
+* `--clear`: Clear all log files
+* `-s, --search TEXT`: Search logs for specific text
+* `--help`: Show this message and exit.
 
 ## `voltamanager rollback`
 
 Rollback to previous package versions.
 
-```bash
-# Examples:
-voltamanager rollback # Rollback all packages
-voltamanager rollback typescript # Rollback only typescript
-voltamanager rollback eslint prettier --force # Rollback multiple without confirmation
-```
+Examples:
+    voltamanager rollback              # Rollback all packages
+    voltamanager rollback typescript   # Rollback only typescript
+    voltamanager rollback eslint prettier --force  # Rollback multiple without confirmation
 
 **Usage**:
 
-```bash
-voltamanager rollback [OPTIONS] [PACKAGES]...
+```console
+$ voltamanager rollback [OPTIONS] [PACKAGES]...
 ```
 
 **Arguments**:
 
-- `[PACKAGES]...`: Specific packages to rollback (empty for all)
+* `[PACKAGES]...`: Specific packages to rollback (empty for all)
 
 **Options**:
 
-- `-f, --force`: Skip confirmation prompt
-- `--help`: Show this message and exit.
+* `-f, --force`: Skip confirmation prompt
+* `--help`: Show this message and exit.
 
 ## `voltamanager bench`
 
@@ -116,14 +114,14 @@ Benchmark npm registry query performance.
 
 **Usage**:
 
-```bash
-voltamanager bench [OPTIONS]
+```console
+$ voltamanager bench [OPTIONS]
 ```
 
 **Options**:
 
-- `-p, --packages INTEGER`: Number of test packages to check [default: 10]
-- `--help`: Show this message and exit.
+* `-p, --packages INTEGER`: Number of test packages to check  [default: 10]
+* `--help`: Show this message and exit.
 
 ## `voltamanager health`
 
@@ -132,20 +130,18 @@ Check the health of your volta installation.
 Verifies that volta, npm, and node are properly installed and configured.
 Useful for troubleshooting installation issues.
 
-```bash
-# Examples:
-voltamanager health # Run health check
-```
+Examples:
+    voltamanager health    # Run health check
 
 **Usage**:
 
-```bash
-voltamanager health [OPTIONS]
+```console
+$ voltamanager health [OPTIONS]
 ```
 
 **Options**:
 
-- `--help`: Show this message and exit.
+* `--help`: Show this message and exit.
 
 ## `voltamanager audit`
 
@@ -154,73 +150,67 @@ Run security audit on installed packages.
 Checks all volta-managed packages for known security vulnerabilities
 using npm audit.
 
-```bash
-# Examples:
-voltamanager audit # Basic audit
-voltamanager audit -v # Detailed vulnerability info
-voltamanager audit --critical-only # Only fail on critical vulns
-```
+Examples:
+    voltamanager audit              # Basic audit
+    voltamanager audit -v           # Detailed vulnerability info
+    voltamanager audit --critical-only  # Only fail on critical vulns
 
 **Usage**:
 
-```bash
-voltamanager audit [OPTIONS]
+```console
+$ voltamanager audit [OPTIONS]
 ```
 
 **Options**:
 
-- `-v, --verbose`: Show detailed vulnerability information
-- `--critical-only`: Exit with error only if critical vulnerabilities found
-- `--help`: Show this message and exit.
+* `-v, --verbose`: Show detailed vulnerability information
+* `--critical-only`: Exit with error only if critical vulnerabilities found
+* `--help`: Show this message and exit.
 
 ## `voltamanager pin`
 
 Pin packages to prevent updates (adds to config exclude list).
 
-```bash
 Examples:
-voltamanager pin typescript eslint # Pin typescript and eslint
-voltamanager pin --unpin typescript # Unpin typescript
-```
+    voltamanager pin typescript eslint    # Pin typescript and eslint
+    voltamanager pin --unpin typescript   # Unpin typescript
 
 **Usage**:
 
-```bash
-voltamanager pin [OPTIONS] PACKAGES...
+```console
+$ voltamanager pin [OPTIONS] PACKAGES...
 ```
 
 **Arguments**:
 
-- `PACKAGES...`: Package names to pin [required]
+* `PACKAGES...`: Package names to pin  [required]
 
 **Options**:
 
-- `--unpin`: Remove packages from pin list
-- `--help`: Show this message and exit.
+* `--unpin`: Remove packages from pin list
+* `--help`: Show this message and exit.
 
 ## `voltamanager info`
 
 Show detailed information about a package.
 
-```bash
-# Examples:
-voltamanager info typescript
-voltamanager info @vue/cli
-```
+Examples:
+    voltamanager info typescript
+    voltamanager info @vue/cli
 
 **Usage**:
 
-```bash
-voltamanager info [OPTIONS] PACKAGE
+```console
+$ voltamanager info [OPTIONS] PACKAGE
 ```
 
 **Arguments**:
 
-- `PACKAGE`: Package name to get information about [required]
+* `PACKAGE`: Package name to get information about  [required]
 
 **Options**:
 
-- `--help`: Show this message and exit.
+* `--help`: Show this message and exit.
 
 ## `voltamanager breaking-changes`
 
@@ -229,22 +219,20 @@ Analyze packages with major version updates (breaking changes).
 Shows detailed information about packages that have major version bumps,
 which may contain breaking changes requiring code updates.
 
-```bash
-# Examples:
-voltamanager breaking-changes # Check all packages
-voltamanager breaking-changes typescript # Check specific package
-```
+Examples:
+    voltamanager breaking-changes              # Check all packages
+    voltamanager breaking-changes typescript   # Check specific package
 
 **Usage**:
 
-```bash
-voltamanager breaking-changes [OPTIONS] [PACKAGES]...
+```console
+$ voltamanager breaking-changes [OPTIONS] [PACKAGES]...
 ```
 
 **Arguments**:
 
-- `[PACKAGES]...`: Specific packages to check (empty for all)
+* `[PACKAGES]...`: Specific packages to check (empty for all)
 
 **Options**:
 
-- `--help`: Show this message and exit.
+* `--help`: Show this message and exit.

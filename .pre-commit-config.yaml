@@ -1,7 +1,8 @@
+# yaml-language-server: $schema=https://www.schemastore.org/pre-commit-config.json
 # See https://pre-commit.com, and https://pre-commit.ci for more information
 
 ci:
-  skip: [ cleanup, readme-gen ]
+  skip: [cleanup, readme-gen]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -22,11 +23,11 @@ repos:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
-        args: [ --markdown-linebreak-ext=md ]
+        args: [--markdown-linebreak-ext=md]
       - id: fix-byte-order-marker
       - id: forbid-new-submodules
       - id: mixed-line-ending
-        args: [ --fix=lf ]
+        args: [--fix=lf]
       - id: name-tests-test
       - id: pretty-format-json
         args:
@@ -38,16 +39,16 @@ repos:
       - id: requirements-txt-fixer
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.13.2
+    rev: v0.14.2
     hooks:
       # Lints and auto-fix Python files using ruff
       - id: ruff-check
-        args: [ --fix ]
+        args: [--fix]
         # Formats Python files using ruff
       - id: ruff-format
 
   - repo: https://github.com/executablebooks/mdformat
-    rev: 0.7.22
+    rev: 1.0.0
     hooks:
       # Formats Markdown files using mdformat with ruff integration
       - id: mdformat
@@ -66,6 +67,12 @@ repos:
         args: [--config-file=mypy.ini]
         exclude: ^tests/
 
+  - repo: https://github.com/tombi-toml/tombi-pre-commit
+    rev: v0.6.39
+    hooks:
+      - id: tombi-format
+      - id: tombi-lint
+
   #  - repo: https://github.com/DavidAnson/markdownlint-cli2
   #    rev: v0.18.1
   #    hooks:
@@ -73,12 +80,12 @@ repos:
   #      args: [--fix]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
+    rev: v3.21.0
     hooks:
       - id: pyupgrade
 
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.8.22
+    rev: 0.9.5
     hooks:
       # Updates uv.lock, even if the pyproject.toml file was changed
       - id: uv-lock
@@ -86,7 +93,7 @@ repos:
       - id: uv-export
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.34.0
+    rev: 0.34.1
     hooks:
       - id: check-dependabot
       - id: check-github-actions
@@ -95,14 +102,22 @@ repos:
       - id: check-github-workflows
       - id: check-jsonschema
         name: "Check pyproject.toml"
-        types_or: [ toml ]
+        types_or: [toml]
         files: (^|/)pyproject\.toml$
-        args: [ --schemafile, "https://raw.github.com/SchemaStore/schemastore/master/src/schemas/json/pyproject.json" ]
+        args:
+          [
+            --schemafile,
+            "https://raw.github.com/SchemaStore/schemastore/master/src/schemas/json/pyproject.json",
+          ]
       - id: check-jsonschema
         name: "Check tasks.json"
-        types_or: [ json ]
+        types_or: [json]
         files: (^|/)tasks\.json$
-        args: [ --schemafile, "https://raw.github.com/SchemaStore/schemastore/master/src/schemas/json/task.json" ]
+        args:
+          [
+            --schemafile,
+            "https://raw.github.com/SchemaStore/schemastore/master/src/schemas/json/task.json",
+          ]
 
   - repo: local
     hooks:
