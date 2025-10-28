@@ -295,14 +295,29 @@ def check_and_update(
         # Save snapshot before updating
         save_snapshot(snapshot)
 
-        console.print(f"[yellow]Updating {len(to_install)} package(s)...[/yellow]")
-        try:
-            subprocess.run(["volta", "install"] + to_install, cwd=safe_dir, check=True)
-            console.print("[green]✓ Update complete[/green]")
-            log_update(to_install)
-            return 0
-        except subprocess.CalledProcessError as e:
-            console.print(f"[red]✗ Update failed with code {e.returncode}[/red]")
-            return e.returncode
+        # Update with progress indicator
+        from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
+
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            TimeElapsedColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task(
+                f"Updating {len(to_install)} package(s)...", total=None
+            )
+            try:
+                subprocess.run(
+                    ["volta", "install"] + to_install, cwd=safe_dir, check=True
+                )
+                progress.update(task, completed=True)
+                console.print("[green]✓ Update complete[/green]")
+                log_update(to_install)
+                return 0
+            except subprocess.CalledProcessError as e:
+                progress.update(task, completed=True)
+                console.print(f"[red]✗ Update failed with code {e.returncode}[/red]")
+                return e.returncode
 
     return 0

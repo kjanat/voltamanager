@@ -83,16 +83,79 @@ def display_json(
     console.print(json.dumps(result, indent=2))
 
 
-def display_statistics(states: List[str]) -> None:
-    """Display summary statistics."""
+def display_statistics(
+    states: List[str],
+    names: List[str] = None,
+    installed: List[str] = None,
+    latest: List[str] = None,
+) -> None:
+    """Display summary statistics with enhanced reporting."""
+    from .utils import is_major_update, is_minor_update
+
     console.print("\n[bold]Summary:[/bold]")
-    console.print(f"  Total packages: {len(states)}")
-    console.print(f"  Up-to-date: {states.count('up-to-date')}")
-    console.print(f"  Outdated: {states.count('OUTDATED')}")
-    console.print(f"  Project-pinned: {states.count('PROJECT')}")
-    console.print(f"  Unknown: {states.count('UNKNOWN')}")
-    if states.count("EXCLUDED") > 0:
-        console.print(f"  Excluded: {states.count('EXCLUDED')}")
+    total = len(states)
+    up_to_date = states.count("up-to-date")
+    outdated = states.count("OUTDATED")
+    project = states.count("PROJECT")
+    unknown = states.count("UNKNOWN")
+    excluded = states.count("EXCLUDED")
+
+    console.print(f"  Total packages: {total}")
+    console.print(f"  [green]✓ Up-to-date: {up_to_date}[/green]")
+    if outdated > 0:
+        console.print(f"  [yellow]⚠ Outdated: {outdated}[/yellow]")
+    else:
+        console.print(f"  Outdated: {outdated}")
+    if project > 0:
+        console.print(f"  [dim]Project-pinned: {project}[/dim]")
+    if unknown > 0:
+        console.print(f"  [red]? Unknown: {unknown}[/red]")
+    if excluded > 0:
+        console.print(f"  [dim red]✗ Excluded: {excluded}[/dim red]")
+
+    # Show update breakdown if version info available
+    if names and installed and latest and outdated > 0:
+        major_count = 0
+        minor_count = 0
+        patch_count = 0
+
+        for i in range(len(states)):
+            if states[i] == "OUTDATED" and latest[i] != "?":
+                if is_major_update(installed[i], latest[i]):
+                    major_count += 1
+                elif is_minor_update(installed[i], latest[i]):
+                    minor_count += 1
+                else:
+                    patch_count += 1
+
+        if major_count > 0 or minor_count > 0 or patch_count > 0:
+            console.print("\n[bold]Update Breakdown:[/bold]")
+            if major_count > 0:
+                console.print(
+                    f"  [yellow]⚠ Major updates: {major_count}[/yellow] (may have breaking changes)"
+                )
+            if minor_count > 0:
+                console.print(
+                    f"  [cyan]Minor updates: {minor_count}[/cyan] (new features, typically safe)"
+                )
+            if patch_count > 0:
+                console.print(
+                    f"  [green]Patch updates: {patch_count}[/green] (bug fixes, safe)"
+                )
+
+    # Calculate health percentage
+    if total > 0:
+        health_pct = (
+            (up_to_date / (total - excluded - project)) * 100
+            if (total - excluded - project) > 0
+            else 100
+        )
+        health_color = (
+            "green" if health_pct >= 80 else "yellow" if health_pct >= 60 else "red"
+        )
+        console.print(
+            f"\n[bold]Health Score:[/bold] [{health_color}]{health_pct:.1f}%[/{health_color}]"
+        )
 
 
 def display_dry_run_report(

@@ -15,6 +15,7 @@ from rich.console import Console
 app = typer.Typer(
     help="Check and upgrade Volta-managed global packages",
     add_completion=True,
+    rich_markup_mode="rich",
 )
 console = Console()
 

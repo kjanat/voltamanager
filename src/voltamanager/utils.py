@@ -34,6 +34,37 @@ def is_major_update(current: str, latest: str) -> bool:
         return False
 
 
+def is_minor_update(current: str, latest: str) -> bool:
+    """Check if the version update is a minor version bump.
+
+    Args:
+        current: Current installed version
+        latest: Latest available version
+
+    Returns:
+        True if latest has a higher minor version (same major) than current
+    """
+    try:
+        current_ver = pkg_version.parse(current)
+        latest_ver = pkg_version.parse(latest)
+
+        if (
+            hasattr(current_ver, "release")
+            and hasattr(latest_ver, "release")
+            and len(current_ver.release) >= 2
+            and len(latest_ver.release) >= 2
+        ):
+            # Minor update: major same, minor different
+            return bool(
+                current_ver.release[0] == latest_ver.release[0]
+                and latest_ver.release[1] > current_ver.release[1]
+            )
+
+        return False
+    except (pkg_version.InvalidVersion, AttributeError, IndexError):
+        return False
+
+
 def get_major_updates(
     names: list[str], installed: list[str], latest: list[str], states: list[str]
 ) -> list[tuple[str, str, str]]:
