@@ -20,8 +20,9 @@ app = typer.Typer(
 console = Console()
 
 
-@app.command()
+@app.callback(invoke_without_command=True)
 def main(
+    ctx: typer.Context,
     force: bool = typer.Option(
         False, "--force", "-f", help="Skip version check and force update all packages"
     ),
@@ -68,6 +69,10 @@ def main(
         voltamanager -u -i              # Interactively select updates
         voltamanager --no-cache         # Force fresh npm queries
     """
+
+    # If a subcommand was invoked, skip main logic
+    if ctx.invoked_subcommand is not None:
+        return
 
     # Load configuration
     config = Config()
