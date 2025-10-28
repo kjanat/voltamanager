@@ -1,13 +1,30 @@
 [project]
 name = "voltamanager"
 version = "0.13.0"
-description = "Check and upgrade Volta-managed global packages"
+description = "A package manager for a package manager of a package manager."
+readme = { file = "README.md", content-type = "text/markdown" }
 requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Kaj Kowalski", email = "dev@kajkowalski.nl" }]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13"
+]
 dependencies = [
   "packaging>=24.0",
   "rich>=14.1.0",
   "typer>=0.19.2",
 ]
+
+[project.urls]
+# Homepage = "https://example.com"
+# Documentation = "https://readthedocs.org"
+Changelog = "https://github.com/kjanat/voltamanager/blob/master/CHANGELOG.md"
+Issues = "https://github.com/kjanat/voltamanager/issues"
+Repository = "https://github.com/kjanat/voltamanager.git"
 
 [project.scripts]
 voltamanager = "voltamanager:app"
@@ -23,17 +40,17 @@ dev = [
 ]
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build >= 0.9.5, <0.10.0"]
+build-backend = "uv_build"
 
 [tool.coverage.run]
 source = ["src/voltamanager"]
 branch = true
-omit = [
-  "*/tests/*",
-  "*/__pycache__/*",
-  "*/.venv/*",
-]
+# omit = [
+#   "*/tests/*",
+#   "*/__pycache__/*",
+#   "*/.venv/*",
+# ]
 
 [tool.coverage.report]
 precision = 2
@@ -61,9 +78,3 @@ python_classes = ["Test*"]
 python_files = ["*_test.py", "test_*.py"]
 python_functions = ["test_*"]
 testpaths = ["tests"]
-
-[tool.ruff.lint]
-preview = true
-
-[tool.ruff.format]
-preview = true
