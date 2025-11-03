@@ -61,6 +61,12 @@ exclude_lines = [
   "@abstractmethod",
 ]
 
+[tool.coverage.xml]
+output = "coverage.xml"
+
+[tool.coverage.html]
+directory = "htmlcov"
+
 [tool.pytest.ini_options]
 addopts = [
   "--verbose",

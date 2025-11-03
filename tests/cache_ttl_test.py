@@ -20,7 +20,7 @@ def temp_cache_dir(monkeypatch):
         yield cache_dir
 
 
-def test_cache_with_custom_ttl(temp_cache_dir):
+def test_cache_with_custom_ttl(temp_cache_dir) -> None:
     """Test cache respects custom TTL."""
     package = "test-package"
     version = "1.0.0"
@@ -45,7 +45,7 @@ def test_cache_with_custom_ttl(temp_cache_dir):
     assert get_cached_version(package, ttl_hours=3) == version
 
 
-def test_cache_with_longer_ttl(temp_cache_dir):
+def test_cache_with_longer_ttl(temp_cache_dir) -> None:
     """Test cache with longer TTL (24 hours)."""
     package = "long-lived-package"
     version = "2.0.0"
@@ -67,7 +67,7 @@ def test_cache_with_longer_ttl(temp_cache_dir):
     assert get_cached_version(package, ttl_hours=24) == version
 
 
-def test_cache_default_ttl(temp_cache_dir):
+def test_cache_default_ttl(temp_cache_dir) -> None:
     """Test cache uses default 1 hour TTL when not specified."""
     package = "default-ttl-package"
     version = "3.0.0"
@@ -89,7 +89,7 @@ def test_cache_default_ttl(temp_cache_dir):
     assert get_cached_version(package) is None
 
 
-def test_cache_scoped_package_with_ttl(temp_cache_dir):
+def test_cache_scoped_package_with_ttl(temp_cache_dir) -> None:
     """Test cache handles scoped packages with custom TTL."""
     package = "@vue/cli"
     version = "5.0.8"

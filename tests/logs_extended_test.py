@@ -47,7 +47,7 @@ class TestLogsTailOption:
 
     def test_tail_default(self, runner, sample_log_file):
         """Test default tail shows last 20 lines."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs"])
             assert result.exit_code == 0
             # Default is 20 lines, file has 20 lines, so all should show
@@ -56,7 +56,7 @@ class TestLogsTailOption:
 
     def test_tail_custom_small(self, runner, sample_log_file):
         """Test custom tail with small count."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "--tail", "3"])
             assert result.exit_code == 0
             # Should only show last 3 lines
@@ -68,7 +68,7 @@ class TestLogsTailOption:
 
     def test_tail_custom_large(self, runner, sample_log_file):
         """Test custom tail with large count."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "--tail", "100"])
             assert result.exit_code == 0
             # Should show all lines (file has 20 lines)
@@ -77,7 +77,7 @@ class TestLogsTailOption:
 
     def test_tail_zero(self, runner, sample_log_file):
         """Test tail with zero shows all lines."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "--tail", "0"])
             assert result.exit_code == 0
             # tail=0 should show everything
@@ -86,7 +86,7 @@ class TestLogsTailOption:
 
     def test_tail_shorthand(self, runner, sample_log_file):
         """Test tail shorthand -n option."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "-n", "5"])
             assert result.exit_code == 0
             assert "Application shutdown" in result.stdout
@@ -97,7 +97,7 @@ class TestLogsSearchOption:
 
     def test_search_error_only(self, runner, sample_log_file):
         """Test search for ERROR messages."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "--search", "ERROR"])
             assert result.exit_code == 0
             assert "Failed to update package react" in result.stdout
@@ -108,7 +108,7 @@ class TestLogsSearchOption:
 
     def test_search_warning_only(self, runner, sample_log_file):
         """Test search for WARNING messages."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "--search", "WARNING"])
             assert result.exit_code == 0
             assert "typescript is outdated" in result.stdout
@@ -117,7 +117,7 @@ class TestLogsSearchOption:
 
     def test_search_case_insensitive(self, runner, sample_log_file):
         """Test search is case insensitive."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result1 = runner.invoke(app, ["logs", "--search", "error"])
             result2 = runner.invoke(app, ["logs", "--search", "ERROR"])
             # Both should find the same ERROR entries
@@ -128,7 +128,7 @@ class TestLogsSearchOption:
 
     def test_search_specific_text(self, runner, sample_log_file):
         """Test search for specific text."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "--search", "package"])
             assert result.exit_code == 0
             assert "Checking 5 packages" in result.stdout
@@ -137,14 +137,14 @@ class TestLogsSearchOption:
 
     def test_search_no_matches(self, runner, sample_log_file):
         """Test search with no matches."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "--search", "nonexistent"])
             assert result.exit_code == 0
             assert "No matching log entries found" in result.stdout
 
     def test_search_shorthand(self, runner, sample_log_file):
         """Test search shorthand -s option."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             result = runner.invoke(app, ["logs", "-s", "ERROR"])
             assert result.exit_code == 0
             assert "ERROR" in result.stdout
@@ -158,7 +158,7 @@ class TestLogsClearOption:
         log_file = tmp_path / "test.log"
         log_file.write_text("Some log content", encoding="utf-8")
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--clear"], input="y\n")
             assert result.exit_code == 0
             assert "Logs cleared" in result.stdout
@@ -169,7 +169,7 @@ class TestLogsClearOption:
         log_file = tmp_path / "test.log"
         log_file.write_text("Some log content", encoding="utf-8")
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--clear"], input="n\n")
             assert result.exit_code == 0
             assert "Clear cancelled" in result.stdout
@@ -179,7 +179,7 @@ class TestLogsClearOption:
         """Test clear when no log file exists."""
         log_file = tmp_path / "nonexistent.log"
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--clear"], input="y\n")
             assert result.exit_code == 0
             assert "No log file to clear" in result.stdout
@@ -189,7 +189,7 @@ class TestLogsClearOption:
         log_file = tmp_path / "test.log"
         log_file.write_text("Some log content", encoding="utf-8")
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--clear"], input="n\n")
             assert "Are you sure" in result.stdout
 
@@ -208,7 +208,7 @@ class TestLogsColorCoding:
             encoding="utf-8",
         )
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs"])
             assert result.exit_code == 0
             # Verify all message types are present
@@ -222,7 +222,7 @@ class TestLogsColorCoding:
         log_file = tmp_path / "test.log"
         log_file.write_text("2024-01-01 - ERROR - Critical failure\n", encoding="utf-8")
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs"])
             assert result.exit_code == 0
             assert "Critical failure" in result.stdout
@@ -233,7 +233,7 @@ class TestLogsCombinedOptions:
 
     def test_tail_and_search_combined(self, runner, sample_log_file):
         """Test using --tail and --search together."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             # Search for ERROR, then tail to 2 results
             result = runner.invoke(app, ["logs", "--search", "ERROR", "--tail", "2"])
             assert result.exit_code == 0
@@ -242,7 +242,7 @@ class TestLogsCombinedOptions:
 
     def test_stats_overrides_tail(self, runner, sample_log_file):
         """Test that --stats mode doesn't show log lines."""
-        with patch("voltamanager.logger.LOG_FILE", sample_log_file):
+        with patch("voltamanager.LOG_FILE", sample_log_file):
             with patch("voltamanager.logger.get_log_stats") as mock_stats:
                 mock_stats.return_value = {
                     "total_lines": 20,
@@ -263,7 +263,7 @@ class TestLogsEdgeCases:
         log_file = tmp_path / "empty.log"
         log_file.write_text("", encoding="utf-8")
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs"])
             assert result.exit_code == 0
 
@@ -272,7 +272,7 @@ class TestLogsEdgeCases:
         log_file = tmp_path / "single.log"
         log_file.write_text("2024-01-01 - INFO - Single entry", encoding="utf-8")
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--tail", "10"])
             assert result.exit_code == 0
             assert "Single entry" in result.stdout
@@ -283,6 +283,6 @@ class TestLogsEdgeCases:
         long_line = "2024-01-01 - INFO - " + "x" * 1000
         log_file.write_text(long_line, encoding="utf-8")
 
-        with patch("voltamanager.logger.LOG_FILE", log_file):
+        with patch("voltamanager.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs"])
             assert result.exit_code == 0

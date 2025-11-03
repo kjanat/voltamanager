@@ -43,7 +43,7 @@ parallel_checks = 10
         yield config_dir, config_file
 
 
-def test_pin_single_package(runner, temp_config_dir):
+def test_pin_single_package(runner, temp_config_dir) -> None:
     """Test pinning a single package."""
     _config_dir, config_file = temp_config_dir
 
@@ -60,7 +60,7 @@ def test_pin_single_package(runner, temp_config_dir):
     assert '"typescript"' in config_content
 
 
-def test_pin_multiple_packages(runner, temp_config_dir):
+def test_pin_multiple_packages(runner, temp_config_dir) -> None:
     """Test pinning multiple packages at once."""
     _config_dir, config_file = temp_config_dir
 
@@ -76,7 +76,7 @@ def test_pin_multiple_packages(runner, temp_config_dir):
     assert '"prettier"' in config_content
 
 
-def test_pin_already_pinned(runner, temp_config_dir):
+def test_pin_already_pinned(runner, temp_config_dir) -> None:
     """Test pinning a package that's already pinned."""
     _config_dir, _config_file = temp_config_dir
 
@@ -91,7 +91,7 @@ def test_pin_already_pinned(runner, temp_config_dir):
     assert "Currently pinned packages:" in result.stdout
 
 
-def test_unpin_package(runner, temp_config_dir):
+def test_unpin_package(runner, temp_config_dir) -> None:
     """Test unpinning a package."""
     _config_dir, config_file = temp_config_dir
 
@@ -109,7 +109,7 @@ def test_unpin_package(runner, temp_config_dir):
     assert "exclude = []" in config_content
 
 
-def test_unpin_not_pinned(runner, temp_config_dir):
+def test_unpin_not_pinned(runner, temp_config_dir) -> None:
     """Test unpinning a package that wasn't pinned."""
     _config_dir, _config_file = temp_config_dir
 
@@ -119,7 +119,7 @@ def test_unpin_not_pinned(runner, temp_config_dir):
     assert "None of the specified packages were pinned" in result.stdout
 
 
-def test_unpin_multiple_packages(runner, temp_config_dir):
+def test_unpin_multiple_packages(runner, temp_config_dir) -> None:
     """Test unpinning multiple packages."""
     _config_dir, config_file = temp_config_dir
 
@@ -139,7 +139,7 @@ def test_unpin_multiple_packages(runner, temp_config_dir):
     assert '"prettier"' in config_content
 
 
-def test_pin_preserves_other_config(runner, temp_config_dir):
+def test_pin_preserves_other_config(runner, temp_config_dir) -> None:
     """Test that pinning doesn't break other config values."""
     _config_dir, config_file = temp_config_dir
 

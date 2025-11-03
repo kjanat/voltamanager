@@ -8,7 +8,7 @@ from voltamanager.config import Config
 from voltamanager.operations import check_and_update
 
 
-def test_all_packages_flag_shows_excluded():
+def test_all_packages_flag_shows_excluded() -> None:
     """Test --all-packages flag includes excluded packages in display."""
     namevers = [
         "typescript@5.0.0",
@@ -66,7 +66,7 @@ def test_all_packages_flag_shows_excluded():
             assert states[prettier_idx] == "EXCLUDED"
 
 
-def test_without_all_packages_flag_hides_excluded():
+def test_without_all_packages_flag_hides_excluded() -> None:
     """Test without --all-packages flag, excluded packages are hidden."""
     namevers = [
         "typescript@5.0.0",
@@ -122,7 +122,7 @@ def test_without_all_packages_flag_hides_excluded():
             assert "prettier" not in names
 
 
-def test_all_packages_with_multiple_excluded():
+def test_all_packages_with_multiple_excluded() -> None:
     """Test --all-packages with multiple excluded packages."""
     namevers = [
         "typescript@5.0.0",
@@ -186,7 +186,7 @@ def test_all_packages_with_multiple_excluded():
             assert states[webpack_idx] == "EXCLUDED"
 
 
-def test_all_packages_json_output():
+def test_all_packages_json_output() -> None:
     """Test --all-packages works with JSON output."""
     namevers = [
         "typescript@5.0.0",

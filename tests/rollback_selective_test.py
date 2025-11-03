@@ -41,7 +41,7 @@ def snapshot_dir(monkeypatch):
 
 
 @patch("subprocess.run")
-def test_rollback_all_packages(mock_run, runner, snapshot_dir):
+def test_rollback_all_packages(mock_run, runner, snapshot_dir) -> None:
     """Test rolling back all packages (original behavior)."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -63,7 +63,7 @@ def test_rollback_all_packages(mock_run, runner, snapshot_dir):
 
 
 @patch("subprocess.run")
-def test_rollback_single_package(mock_run, runner, snapshot_dir):
+def test_rollback_single_package(mock_run, runner, snapshot_dir) -> None:
     """Test rolling back a single specified package."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -83,7 +83,7 @@ def test_rollback_single_package(mock_run, runner, snapshot_dir):
 
 
 @patch("subprocess.run")
-def test_rollback_multiple_packages(mock_run, runner, snapshot_dir):
+def test_rollback_multiple_packages(mock_run, runner, snapshot_dir) -> None:
     """Test rolling back multiple specified packages."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -102,7 +102,7 @@ def test_rollback_multiple_packages(mock_run, runner, snapshot_dir):
     assert "prettier@3.0.0" not in call_args
 
 
-def test_rollback_package_not_in_snapshot(runner, snapshot_dir):
+def test_rollback_package_not_in_snapshot(runner, snapshot_dir) -> None:
     """Test rolling back a package that's not in the snapshot."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -113,7 +113,7 @@ def test_rollback_package_not_in_snapshot(runner, snapshot_dir):
     assert "None of the specified packages found in snapshot" in result.stdout
 
 
-def test_rollback_partial_match_warns(runner, snapshot_dir):
+def test_rollback_partial_match_warns(runner, snapshot_dir) -> None:
     """Test warning when some packages aren't in snapshot."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -128,7 +128,7 @@ def test_rollback_partial_match_warns(runner, snapshot_dir):
 
 
 @patch("subprocess.run")
-def test_rollback_scoped_package(mock_run, runner, snapshot_dir):
+def test_rollback_scoped_package(mock_run, runner, snapshot_dir) -> None:
     """Test rolling back a scoped package."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -144,7 +144,7 @@ def test_rollback_scoped_package(mock_run, runner, snapshot_dir):
     assert "@vue/cli@5.0.0" in call_args
 
 
-def test_rollback_no_snapshot(runner):
+def test_rollback_no_snapshot(runner) -> None:
     """Test rollback when no snapshot exists."""
     with tempfile.TemporaryDirectory() as tmpdir:
         with patch("pathlib.Path.home", return_value=Path(tmpdir)):
@@ -156,7 +156,7 @@ def test_rollback_no_snapshot(runner):
 
 
 @patch("subprocess.run")
-def test_rollback_volta_failure(mock_run, runner, snapshot_dir):
+def test_rollback_volta_failure(mock_run, runner, snapshot_dir) -> None:
     """Test handling of volta install failure during rollback."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -170,7 +170,7 @@ def test_rollback_volta_failure(mock_run, runner, snapshot_dir):
     assert "✗ Rollback failed" in result.stdout
 
 
-def test_rollback_requires_confirmation_without_force(runner, snapshot_dir):
+def test_rollback_requires_confirmation_without_force(runner, snapshot_dir) -> None:
     """Test that rollback requires confirmation when --force is not used."""
     snapshot_dir, _snapshot_file = snapshot_dir
 
@@ -183,7 +183,7 @@ def test_rollback_requires_confirmation_without_force(runner, snapshot_dir):
 
 
 @patch("subprocess.run")
-def test_rollback_with_confirmation(mock_run, runner, snapshot_dir):
+def test_rollback_with_confirmation(mock_run, runner, snapshot_dir) -> None:
     """Test rollback when user confirms."""
     snapshot_dir, _snapshot_file = snapshot_dir
 

@@ -9,7 +9,7 @@ from voltamanager.operations import check_and_update
 from voltamanager.utils import check_disk_space, estimate_update_size
 
 
-def test_check_disk_space_sufficient():
+def test_check_disk_space_sufficient() -> None:
     """Test disk space check with sufficient space."""
     # Mock shutil.disk_usage to return plenty of space (10GB)
     with patch("voltamanager.utils.shutil.disk_usage") as mock_disk:
@@ -22,7 +22,7 @@ def test_check_disk_space_sufficient():
         assert available >= 500
 
 
-def test_check_disk_space_insufficient():
+def test_check_disk_space_insufficient() -> None:
     """Test disk space check with insufficient space."""
     # Mock shutil.disk_usage to return low space (100MB)
     with patch("voltamanager.utils.shutil.disk_usage") as mock_disk:
@@ -33,7 +33,7 @@ def test_check_disk_space_insufficient():
         assert available < 500
 
 
-def test_check_disk_space_error_handling():
+def test_check_disk_space_error_handling() -> None:
     """Test disk space check handles OS errors gracefully."""
     with patch("voltamanager.utils.shutil.disk_usage") as mock_disk:
         mock_disk.side_effect = OSError("Cannot access disk")
@@ -44,7 +44,7 @@ def test_check_disk_space_error_handling():
         assert available == -1
 
 
-def test_estimate_update_size():
+def test_estimate_update_size() -> None:
     """Test update size estimation."""
     # 1 package = 50MB
     assert estimate_update_size(1) == 50
@@ -56,7 +56,7 @@ def test_estimate_update_size():
     assert estimate_update_size(10) == 500
 
 
-def test_update_blocks_on_insufficient_space():
+def test_update_blocks_on_insufficient_space() -> None:
     """Test that updates are blocked when disk space is insufficient."""
     namevers = ["typescript@5.0.0", "eslint@8.0.0", "prettier@3.0.0"]
 
@@ -109,7 +109,7 @@ def test_update_blocks_on_insufficient_space():
             assert error_printed
 
 
-def test_update_proceeds_with_sufficient_space():
+def test_update_proceeds_with_sufficient_space() -> None:
     """Test that updates proceed when disk space is sufficient."""
     namevers = ["typescript@5.0.0"]
 
@@ -157,7 +157,7 @@ def test_update_proceeds_with_sufficient_space():
             assert mock_run.called
 
 
-def test_dry_run_skips_disk_check():
+def test_dry_run_skips_disk_check() -> None:
     """Test that dry run skips disk space check."""
     namevers = ["typescript@5.0.0"]
 
@@ -200,7 +200,7 @@ def test_dry_run_skips_disk_check():
             assert mock_report.called
 
 
-def test_verbose_shows_disk_check_pass():
+def test_verbose_shows_disk_check_pass() -> None:
     """Test that verbose mode shows disk space check passed."""
     namevers = ["typescript@5.0.0"]
 

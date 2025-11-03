@@ -30,7 +30,7 @@ class TestBreakingChangesCommand:
                 return_value=["typescript@5.0.0", "eslint@8.40.0"],
             ),
             patch(
-                "voltamanager.npm.get_latest_versions_parallel",
+                "voltamanager.get_latest_versions_parallel",
                 return_value={"typescript": "5.0.1", "eslint": "8.41.0"},
             ),
         ):

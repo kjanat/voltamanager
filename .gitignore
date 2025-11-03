@@ -171,3 +171,5 @@ dmypy.json
 cython_debug/
 
 .vite/deps/
+
+junit.xml

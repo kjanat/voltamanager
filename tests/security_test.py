@@ -2,7 +2,10 @@
 
 import json
 import subprocess
+from pathlib import Path
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from voltamanager.security import (
     Vulnerability,
@@ -14,7 +17,7 @@ from voltamanager.security import (
 )
 
 
-def test_run_npm_audit_success(tmp_path):
+def test_run_npm_audit_success(tmp_path: Path) -> None:
     """Test successful npm audit execution."""
     audit_data = {
         "metadata": {
@@ -40,13 +43,13 @@ def test_run_npm_audit_success(tmp_path):
         assert result["metadata"]["vulnerabilities"]["total"] == 6
 
 
-def test_run_npm_audit_no_packages(tmp_path):
+def test_run_npm_audit_no_packages(tmp_path: Path) -> None:
     """Test npm audit with empty package list."""
     result = run_npm_audit(tmp_path, [])
     assert result is None
 
 
-def test_run_npm_audit_timeout(tmp_path):
+def test_run_npm_audit_timeout(tmp_path: Path) -> None:
     """Test npm audit when command times out."""
     with patch("voltamanager.security.subprocess.run") as mock_run:
         mock_run.side_effect = subprocess.TimeoutExpired("npm audit", 20)
@@ -56,7 +59,7 @@ def test_run_npm_audit_timeout(tmp_path):
         assert result is None
 
 
-def test_run_npm_audit_command_fails(tmp_path):
+def test_run_npm_audit_command_fails(tmp_path: Path) -> None:
     """Test npm audit when command fails."""
     with patch("voltamanager.security.subprocess.run") as mock_run:
         mock_run.side_effect = subprocess.CalledProcessError(1, "npm audit")
@@ -66,7 +69,7 @@ def test_run_npm_audit_command_fails(tmp_path):
         assert result is None
 
 
-def test_parse_audit_results_with_vulnerabilities():
+def test_parse_audit_results_with_vulnerabilities() -> None:
     """Test parsing audit results with vulnerabilities."""
     audit_data = {
         "vulnerabilities": {
@@ -105,7 +108,7 @@ def test_parse_audit_results_with_vulnerabilities():
     assert lodash_vuln.url == "https://npmjs.com/advisories/1234"
 
 
-def test_parse_audit_results_empty():
+def test_parse_audit_results_empty() -> None:
     """Test parsing empty audit results."""
     audit_data = {"vulnerabilities": {}}
 
@@ -114,7 +117,7 @@ def test_parse_audit_results_empty():
     assert len(vulnerabilities) == 0
 
 
-def test_parse_audit_results_no_via_details():
+def test_parse_audit_results_no_via_details() -> None:
     """Test parsing audit results without via details."""
     audit_data = {
         "vulnerabilities": {
@@ -130,11 +133,13 @@ def test_parse_audit_results_no_via_details():
 
     assert len(vulnerabilities) == 1
     assert vulnerabilities[0].package == "test-pkg"
-    assert vulnerabilities[0].title
-    assert vulnerabilities[0].url
+    assert not vulnerabilities[0].title  # Empty when via has no details
+    assert not vulnerabilities[0].url  # Empty when via has no details
+    assert vulnerabilities[0].severity == "moderate"
+    assert vulnerabilities[0].range == "*"
 
 
-def test_get_severity_color():
+def test_get_severity_color() -> None:
     """Test severity color mapping."""
     assert get_severity_color("critical") == "red bold"
     assert get_severity_color("high") == "red"
@@ -144,7 +149,9 @@ def test_get_severity_color():
     assert get_severity_color("CRITICAL") == "red bold"  # case insensitive
 
 
-def test_display_audit_results_no_vulnerabilities(capsys):
+def test_display_audit_results_no_vulnerabilities(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """Test displaying audit results with no vulnerabilities."""
     audit_data = {"metadata": {"vulnerabilities": {"total": 0}}}
 
@@ -154,7 +161,9 @@ def test_display_audit_results_no_vulnerabilities(capsys):
     assert "No vulnerabilities found" in captured.out
 
 
-def test_display_audit_results_with_vulnerabilities(capsys):
+def test_display_audit_results_with_vulnerabilities(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """Test displaying audit results with vulnerabilities."""
     audit_data = {
         "metadata": {
@@ -178,7 +187,7 @@ def test_display_audit_results_with_vulnerabilities(capsys):
     assert "Low" in captured.out
 
 
-def test_display_audit_results_verbose(capsys):
+def test_display_audit_results_verbose(capsys: pytest.CaptureFixture[str]) -> None:
     """Test displaying detailed audit results in verbose mode."""
     audit_data = {
         "metadata": {
@@ -209,7 +218,9 @@ def test_display_audit_results_verbose(capsys):
     assert "CRITICAL" in captured.out
 
 
-def test_display_audit_results_high_severity_warning(capsys):
+def test_display_audit_results_high_severity_warning(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     """Test warning message for high-severity vulnerabilities."""
     audit_data = {
         "metadata": {
@@ -229,7 +240,9 @@ def test_display_audit_results_high_severity_warning(capsys):
     assert "High-severity vulnerabilities detected" in captured.out
 
 
-def test_check_package_vulnerabilities_success(tmp_path, capsys):
+def test_check_package_vulnerabilities_success(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     """Test checking packages for vulnerabilities."""
     audit_data = {
         "metadata": {
@@ -256,7 +269,9 @@ def test_check_package_vulnerabilities_success(tmp_path, capsys):
         assert "Running security audit" in captured.out
 
 
-def test_check_package_vulnerabilities_critical(tmp_path, capsys):
+def test_check_package_vulnerabilities_critical(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     """Test checking packages with critical vulnerabilities."""
     audit_data = {
         "metadata": {
@@ -281,7 +296,9 @@ def test_check_package_vulnerabilities_critical(tmp_path, capsys):
         assert result is not None
 
 
-def test_check_package_vulnerabilities_audit_fails(tmp_path, capsys):
+def test_check_package_vulnerabilities_audit_fails(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     """Test checking packages when audit fails."""
     with patch("voltamanager.security.run_npm_audit") as mock_audit:
         mock_audit.return_value = None
@@ -296,7 +313,7 @@ def test_check_package_vulnerabilities_audit_fails(tmp_path, capsys):
         assert "Unable to run security audit" in captured.out
 
 
-def test_vulnerability_dataclass():
+def test_vulnerability_dataclass() -> None:
     """Test Vulnerability dataclass creation."""
     vuln = Vulnerability(
         severity="high",
