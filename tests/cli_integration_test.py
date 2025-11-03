@@ -18,7 +18,7 @@ class TestMainCommandIntegration:
     @patch("voltamanager.get_installed_packages")
     def test_main_help(self, mock_get_installed: Mock, mock_check_deps: Mock):
         """Test main command help."""
-        result = runner.invoke(app, ["main", "--help"])
+        result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         assert "Check and upgrade" in result.stdout
 
@@ -33,7 +33,7 @@ class TestMainCommandIntegration:
         mock_get_installed.return_value = ["typescript@5.0.0"]
         mock_check_update.return_value = None
 
-        result = runner.invoke(app, ["main"])
+        result = runner.invoke(app, [])
         assert result.exit_code == 0
 
     @patch("voltamanager.check_dependencies")
@@ -41,7 +41,7 @@ class TestMainCommandIntegration:
         """Test main command with missing dependencies."""
         mock_check_deps.return_value = False
 
-        result = runner.invoke(app, ["main"])
+        result = runner.invoke(app, [])
         assert result.exit_code == 127
 
     @patch("voltamanager.check_dependencies")
@@ -52,19 +52,19 @@ class TestMainCommandIntegration:
         mock_check_update.return_value = None
 
         # Test update flag
-        result = runner.invoke(app, ["main", "--update"])
+        result = runner.invoke(app, ["--update"])
         assert result.exit_code == 0
 
         # Test dry run flag
-        result = runner.invoke(app, ["main", "--dry"])
+        result = runner.invoke(app, ["--dry"])
         assert result.exit_code == 0
 
         # Test json flag
-        result = runner.invoke(app, ["main", "--json"])
+        result = runner.invoke(app, ["--json"])
         assert result.exit_code == 0
 
         # Test verbose flag
-        result = runner.invoke(app, ["main", "--verbose"])
+        result = runner.invoke(app, ["--verbose"])
         assert result.exit_code == 0
 
 

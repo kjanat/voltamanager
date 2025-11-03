@@ -4,6 +4,7 @@ import json
 import subprocess
 import tempfile
 import time
+from importlib.metadata import version
 from pathlib import Path
 
 import typer
@@ -28,6 +29,11 @@ from .operations import check_and_update, fast_install
 from .security import check_package_vulnerabilities
 from .utils import get_changelog_url, get_major_updates
 
+try:
+    __version__ = version("voltamanager")
+except Exception:
+    __version__ = "unknown"
+
 app = typer.Typer(
     help="Check and upgrade Volta-managed global packages",
     add_completion=True,
@@ -36,9 +42,24 @@ app = typer.Typer(
 console = Console()
 
 
+def version_callback(value: bool) -> None:
+    """Show version and exit."""
+    if value:
+        console.print(f"voltamanager {__version__}")
+        raise typer.Exit()
+
+
 @app.callback(invoke_without_command=True)
 def main(  # noqa: PLR0913, PLR0917
     ctx: typer.Context,
+    _version: bool = typer.Option(
+        False,
+        "--version",
+        "-V",
+        callback=version_callback,
+        is_eager=True,
+        help="Show version and exit",
+    ),
     force: bool = typer.Option(
         False, "--force", "-f", help="Skip version check and force update all packages"
     ),

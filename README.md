@@ -10,6 +10,7 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
+* `-V, --version`: Show version and exit
 * `-f, --force`: Skip version check and force update all packages
 * `-u, --update`: Update outdated packages
 * `--dry`: Show what would be done without doing it

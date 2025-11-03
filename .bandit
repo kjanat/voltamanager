@@ -1,0 +1,8 @@
+# Bandit configuration for voltamanager
+# This tool needs to execute system commands (volta, npm) as part of its core functionality
+
+[bandit]
+# B404: subprocess module is required for executing volta and npm commands
+# B603: subprocess calls are safe - no shell=True, controlled inputs
+# B607: volta and npm are expected system commands, not arbitrary executables
+skips: B404,B603,B607

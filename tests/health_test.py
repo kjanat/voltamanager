@@ -3,13 +3,16 @@
 import subprocess
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from voltamanager.core import (
+    HealthCheckResult,
     check_volta_health,
     display_health_check,
 )
 
 
-def test_check_volta_health_all_good():
+def test_check_volta_health_all_good() -> None:
     """Test health check when everything is properly installed."""
     with (
         patch("voltamanager.core.shutil.which") as mock_which,
@@ -49,7 +52,7 @@ def test_check_volta_health_all_good():
         assert len(results["issues"]) == 0
 
 
-def test_check_volta_health_volta_missing():
+def test_check_volta_health_volta_missing() -> None:
     """Test health check when volta is not installed."""
     with patch("voltamanager.core.shutil.which") as mock_which:
         mock_which.return_value = None
@@ -60,7 +63,7 @@ def test_check_volta_health_volta_missing():
         assert "volta not found in PATH" in results["issues"]
 
 
-def test_check_volta_health_npm_missing():
+def test_check_volta_health_npm_missing() -> None:
     """Test health check when npm is not installed."""
     with (
         patch("voltamanager.core.shutil.which") as mock_which,
@@ -85,7 +88,7 @@ def test_check_volta_health_npm_missing():
         assert "npm not found in PATH" in results["issues"]
 
 
-def test_check_volta_health_no_volta_home():
+def test_check_volta_health_no_volta_home() -> None:
     """Test health check when VOLTA_HOME is not set."""
     with (
         patch("voltamanager.core.shutil.which") as mock_which,
@@ -107,7 +110,7 @@ def test_check_volta_health_no_volta_home():
         assert "VOLTA_HOME environment variable not set" in results["issues"]
 
 
-def test_check_volta_health_volta_home_missing_dir():
+def test_check_volta_health_volta_home_missing_dir() -> None:
     """Test health check when VOLTA_HOME directory doesn't exist."""
     with (
         patch("voltamanager.core.shutil.which") as mock_which,
@@ -131,7 +134,7 @@ def test_check_volta_health_volta_home_missing_dir():
         assert any("does not exist" in issue for issue in results["issues"])
 
 
-def test_check_volta_health_version_command_fails():
+def test_check_volta_health_version_command_fails() -> None:
     """Test health check when version commands timeout."""
     with (
         patch("voltamanager.core.shutil.which") as mock_which,
@@ -146,9 +149,9 @@ def test_check_volta_health_version_command_fails():
         assert "Cannot determine volta version" in results["issues"]
 
 
-def test_display_health_check_with_issues(capsys):
+def test_display_health_check_with_issues(capsys: pytest.CaptureFixture[str]) -> None:
     """Test displaying health check results with issues."""
-    results = {
+    results: HealthCheckResult = {
         "volta_installed": True,
         "npm_installed": False,
         "volta_version": "1.1.0",
@@ -167,9 +170,9 @@ def test_display_health_check_with_issues(capsys):
     assert "npm not found in PATH" in captured.out
 
 
-def test_display_health_check_no_issues(capsys):
+def test_display_health_check_no_issues(capsys: pytest.CaptureFixture[str]) -> None:
     """Test displaying health check results without issues."""
-    results = {
+    results: HealthCheckResult = {
         "volta_installed": True,
         "npm_installed": True,
         "volta_version": "1.1.0",

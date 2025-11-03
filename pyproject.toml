@@ -29,7 +29,9 @@ voltamanager = "voltamanager:app"
 
 [dependency-groups]
 dev = [
+  "bandit>=1.8.6",
   "mypy>=1.13.0",
+  "pyright>=1.1.407",
   "pytest>=8.0.0",
   "pytest-cov>=6.0.0",
   "pytest-mock>=3.14.0",

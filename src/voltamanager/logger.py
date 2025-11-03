@@ -4,7 +4,17 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
+
+if TYPE_CHECKING:
+
+    class CustomLogRecord(logging.LogRecord):
+        """LogRecord with custom attributes for voltamanager."""
+
+        package: str
+        version: str
+        operation: str
+        count: int
 
 
 class LogStats(TypedDict):
@@ -34,13 +44,13 @@ class StructuredFormatter(logging.Formatter):
         # Add structured fields if present
         extras = []
         if hasattr(record, "package"):
-            extras.append(f"package={record.package}")
+            extras.append(f"package={getattr(record, 'package')}")
         if hasattr(record, "version"):
-            extras.append(f"version={record.version}")
+            extras.append(f"version={getattr(record, 'version')}")
         if hasattr(record, "operation"):
-            extras.append(f"operation={record.operation}")
+            extras.append(f"operation={getattr(record, 'operation')}")
         if hasattr(record, "count"):
-            extras.append(f"count={record.count}")
+            extras.append(f"count={getattr(record, 'count')}")
 
         extra_str = f" [{', '.join(extras)}]" if extras else ""
         return f"{timestamp} {level:8} {message}{extra_str}"

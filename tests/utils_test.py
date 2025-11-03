@@ -232,9 +232,7 @@ class TestVoltaConfigCheck:
         """Test package.json without volta configuration."""
         monkeypatch.chdir(tmp_path)
         package_json = tmp_path / "package.json"
-        package_json.write_text(
-            json.dumps({"name": "test-app", "version": "1.0.0"}), encoding="utf-8"
-        )
+        package_json.write_text(json.dumps({"name": "test-app", "version": "1.0.0"}))
 
         result = check_local_volta_config()
         assert result is False
@@ -244,14 +242,11 @@ class TestVoltaConfigCheck:
         monkeypatch.chdir(tmp_path)
         package_json = tmp_path / "package.json"
         package_json.write_text(
-            json.dumps(
-                {
-                    "name": "test-app",
-                    "version": "1.0.0",
-                    "volta": {"node": "18.0.0", "npm": "9.0.0"},
-                },
-                encoding="utf-8",
-            )
+            json.dumps({
+                "name": "test-app",
+                "version": "1.0.0",
+                "volta": {"node": "18.0.0", "npm": "9.0.0"},
+            })
         )
 
         result = check_local_volta_config()
@@ -267,17 +262,14 @@ class TestVoltaConfigCheck:
         monkeypatch.chdir(tmp_path)
         package_json = tmp_path / "package.json"
         package_json.write_text(
-            json.dumps(
-                {
-                    "name": "test-app",
-                    "volta": {
-                        "node": "18.0.0",
-                        "npm": "9.0.0",
-                        "yarn": "1.22.0",
-                    },
+            json.dumps({
+                "name": "test-app",
+                "volta": {
+                    "node": "18.0.0",
+                    "npm": "9.0.0",
+                    "yarn": "1.22.0",
                 },
-                encoding="utf-8",
-            )
+            })
         )
 
         result = check_local_volta_config(verbose=True)

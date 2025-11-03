@@ -81,7 +81,7 @@ def run_npm_audit(safe_dir: Path, packages: list[str]) -> dict[str, Any] | None:
         return None
 
 
-def parse_audit_results(audit_data: dict) -> list[Vulnerability]:
+def parse_audit_results(audit_data: dict[str, Any]) -> list[Vulnerability]:
     """Parse npm audit JSON output into Vulnerability objects.
 
     Args:
@@ -149,7 +149,7 @@ def get_severity_color(severity: str) -> str:
 
 
 def display_audit_results(  # noqa: C901
-    audit_data: dict, verbose: bool = False
+    audit_data: dict[str, Any], verbose: bool = False
 ) -> None:
     """Display audit results in formatted tables.
 
