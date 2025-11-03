@@ -6,11 +6,10 @@ from pathlib import Path
 
 import pytest
 
-
 from voltamanager.cache import (
-    get_cached_version,
     cache_version,
     clear_cache,
+    get_cached_version,
 )
 
 # Define CACHE_TTL for tests (default 1 hour)
@@ -38,7 +37,7 @@ class TestGetCachedVersion:
         mock_cache_dir.mkdir(parents=True, exist_ok=True)
         cache_file = mock_cache_dir / "lodash.json"
         cache_data = {"version": "5.0.0", "timestamp": datetime.now().isoformat()}
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         version = get_cached_version("lodash")
         assert version == "5.0.0"
@@ -49,7 +48,7 @@ class TestGetCachedVersion:
         cache_file = mock_cache_dir / "lodash.json"
         expired_time = datetime.now() - CACHE_TTL - timedelta(minutes=1)
         cache_data = {"version": "5.0.0", "timestamp": expired_time.isoformat()}
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         version = get_cached_version("lodash")
         assert version is None
@@ -59,7 +58,7 @@ class TestGetCachedVersion:
         mock_cache_dir.mkdir(parents=True, exist_ok=True)
         cache_file = mock_cache_dir / "@vue_cli.json"  # Slash replaced
         cache_data = {"version": "5.0.8", "timestamp": datetime.now().isoformat()}
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         version = get_cached_version("@vue/cli")
         assert version == "5.0.8"
@@ -68,7 +67,7 @@ class TestGetCachedVersion:
         """Test handling invalid JSON in cache file."""
         mock_cache_dir.mkdir(parents=True, exist_ok=True)
         cache_file = mock_cache_dir / "lodash.json"
-        cache_file.write_text("not valid json")
+        cache_file.write_text("not valid json", encoding="utf-8")
 
         version = get_cached_version("lodash")
         assert version is None
@@ -81,7 +80,7 @@ class TestGetCachedVersion:
             "timestamp": datetime.now().isoformat()
             # Missing "version"
         }
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         version = get_cached_version("lodash")
         assert version is None
@@ -94,7 +93,7 @@ class TestGetCachedVersion:
             "version": "5.0.0"
             # Missing "timestamp"
         }
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         version = get_cached_version("lodash")
         assert version is None
@@ -104,7 +103,7 @@ class TestGetCachedVersion:
         mock_cache_dir.mkdir(parents=True, exist_ok=True)
         cache_file = mock_cache_dir / "lodash.json"
         cache_data = {"version": "5.0.0", "timestamp": "not a timestamp"}
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         version = get_cached_version("lodash")
         assert version is None
@@ -117,7 +116,7 @@ class TestGetCachedVersion:
             "version": 5.0,  # Number instead of string
             "timestamp": datetime.now().isoformat(),
         }
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         version = get_cached_version("lodash")
         assert version is None
@@ -133,7 +132,7 @@ class TestCacheVersion:
         cache_file = mock_cache_dir / "lodash.json"
         assert cache_file.exists()
 
-        data = json.loads(cache_file.read_text())
+        data = json.loads(cache_file.read_text(encoding="utf-8"))
         assert data["version"] == "5.0.0"
         assert "timestamp" in data
 
@@ -148,7 +147,7 @@ class TestCacheVersion:
         cache_file = mock_cache_dir / "@vue_cli.json"
         assert cache_file.exists()
 
-        data = json.loads(cache_file.read_text())
+        data = json.loads(cache_file.read_text(encoding="utf-8"))
         assert data["version"] == "5.0.8"
 
     def test_cache_creates_directory(self, mock_cache_dir: Path) -> None:
@@ -170,13 +169,13 @@ class TestCacheVersion:
             "version": "4.17.21",
             "timestamp": (datetime.now() - timedelta(hours=2)).isoformat(),
         }
-        cache_file.write_text(json.dumps(old_data))
+        cache_file.write_text(json.dumps(old_data), encoding="utf-8")
 
         # Cache new version
         cache_version("lodash", "5.0.0")
 
         # Verify overwrite
-        data = json.loads(cache_file.read_text())
+        data = json.loads(cache_file.read_text(encoding="utf-8"))
         assert data["version"] == "5.0.0"
 
         cached_time = datetime.fromisoformat(data["timestamp"])
@@ -189,7 +188,7 @@ class TestCacheVersion:
         cache_file = mock_cache_dir / "@typescript-eslint_parser.json"
         assert cache_file.exists()
 
-        data = json.loads(cache_file.read_text())
+        data = json.loads(cache_file.read_text(encoding="utf-8"))
         assert data["version"] == "6.0.0"
 
 
@@ -228,8 +227,8 @@ class TestClearCache:
 
         # Create mix of files
         cache_version("lodash", "5.0.0")
-        (mock_cache_dir / "README.txt").write_text("info")
-        (mock_cache_dir / "config.ini").write_text("settings")
+        (mock_cache_dir / "README.txt").write_text("info", encoding="utf-8")
+        (mock_cache_dir / "config.ini").write_text("settings", encoding="utf-8")
 
         clear_cache()
 
@@ -265,7 +264,7 @@ class TestCacheIntegration:
         # Create cache exactly at TTL boundary
         boundary_time = datetime.now() - CACHE_TTL
         cache_data = {"version": "5.0.0", "timestamp": boundary_time.isoformat()}
-        cache_file.write_text(json.dumps(cache_data))
+        cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
 
         # Should be expired (>= TTL is expired)
         version = get_cached_version("lodash")

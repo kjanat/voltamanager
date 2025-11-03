@@ -60,7 +60,17 @@ select = [
   "RUF",
   "TRY"
 ]
-ignore = ["E501", "D211", "D212", "D213", "D203"]
+ignore = [
+  "E501",  # Line too long
+  "D203",  # 1 blank line before class docstring
+  "D211",  # No blank lines before class docstring
+  "D212",  # Multi-line docstring summary first line
+  "D213",  # Multi-line docstring summary second line
+  "PLR6301",  # Method could be function/staticmethod (test methods)
+  "PLR2004",  # Magic value in comparison (many are contextual)
+  "TRY300",  # Return in try block (common pattern)
+  "DOC",  # Docstring checks (too strict for current project)
+]
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []

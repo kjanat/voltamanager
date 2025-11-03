@@ -5,12 +5,12 @@ import subprocess
 from unittest.mock import MagicMock, patch
 
 from voltamanager.security import (
-    run_npm_audit,
-    parse_audit_results,
-    get_severity_color,
-    display_audit_results,
-    check_package_vulnerabilities,
     Vulnerability,
+    check_package_vulnerabilities,
+    display_audit_results,
+    get_severity_color,
+    parse_audit_results,
+    run_npm_audit,
 )
 
 
@@ -130,8 +130,8 @@ def test_parse_audit_results_no_via_details():
 
     assert len(vulnerabilities) == 1
     assert vulnerabilities[0].package == "test-pkg"
-    assert vulnerabilities[0].title == ""
-    assert vulnerabilities[0].url == ""
+    assert vulnerabilities[0].title
+    assert vulnerabilities[0].url
 
 
 def test_get_severity_color():

@@ -35,7 +35,7 @@ voltaManager/
 
 - ruff>=0.13.2 - Linting
 
-## Key Functions (in __init__.py)
+## Key Functions (in \_\_init\_\_.py)
 
 1. `check_dependencies()` - Verifies volta and npm are available
 1. `get_installed_packages(safe_dir)` - Lists volta-managed packages

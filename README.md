@@ -42,6 +42,9 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 
 Create default configuration file.
 
+Raises:
+    Exit: When operation fails or user cancels.
+
 **Usage**:
 
 ```console
@@ -55,6 +58,9 @@ $ voltamanager config [OPTIONS]
 ## `voltamanager clear-cache`
 
 Clear the npm version cache.
+
+Raises:
+    Exit: When operation fails or user cancels.
 
 **Usage**:
 
@@ -132,6 +138,10 @@ Useful for troubleshooting installation issues.
 
 Examples:
     voltamanager health    # Run health check
+
+
+Raises:
+    Exit: When operation fails or user cancels.
 
 **Usage**:
 

@@ -14,7 +14,8 @@ runner = CliRunner()
 class TestInfoCommand:
     """Tests for voltamanager info command."""
 
-    def test_info_success(self) -> None:
+    @staticmethod
+    def test_info_success() -> None:
         """Test successful package info retrieval."""
         mock_data = {
             "name": "typescript",
@@ -46,7 +47,8 @@ class TestInfoCommand:
             assert "5.0.0" in result.stdout
             assert "Apache-2.0" in result.stdout
 
-    def test_info_package_not_found(self) -> None:
+    @staticmethod
+    def test_info_package_not_found() -> None:
         """Test info command with non-existent package."""
         with patch("subprocess.run") as mock_run:
             mock_run.side_effect = subprocess.CalledProcessError(1, ["npm"])
@@ -56,7 +58,8 @@ class TestInfoCommand:
             assert result.exit_code == 1
             assert "not found" in result.stdout
 
-    def test_info_invalid_json_response(self) -> None:
+    @staticmethod
+    def test_info_invalid_json_response() -> None:
         """Test handling of invalid JSON response."""
         with patch("subprocess.run") as mock_run:
             mock_run.return_value.stdout = "{invalid json}"
@@ -67,7 +70,8 @@ class TestInfoCommand:
             assert result.exit_code == 1
             assert "Failed to parse" in result.stdout
 
-    def test_info_timeout(self) -> None:
+    @staticmethod
+    def test_info_timeout() -> None:
         """Test handling of npm query timeout."""
         with patch("subprocess.run") as mock_run:
             mock_run.side_effect = subprocess.TimeoutExpired(["npm"], 10)
@@ -77,7 +81,8 @@ class TestInfoCommand:
             assert result.exit_code == 1
             assert "timed out" in result.stdout
 
-    def test_info_scoped_package(self) -> None:
+    @staticmethod
+    def test_info_scoped_package() -> None:
         """Test info command with scoped package."""
         mock_data = {
             "name": "@vue/cli",
@@ -96,7 +101,8 @@ class TestInfoCommand:
             assert "@vue/cli" in result.stdout
             assert "5.0.8" in result.stdout
 
-    def test_info_with_repository_string(self) -> None:
+    @staticmethod
+    def test_info_with_repository_string() -> None:
         """Test info with repository as string (not dict)."""
         mock_data = {
             "name": "lodash",
@@ -114,7 +120,8 @@ class TestInfoCommand:
             assert "lodash" in result.stdout
             assert "github.com/lodash/lodash" in result.stdout
 
-    def test_info_minimal_data(self) -> None:
+    @staticmethod
+    def test_info_minimal_data() -> None:
         """Test info with minimal package data."""
         mock_data = {"name": "minimal-pkg", "version": "1.0.0"}
 

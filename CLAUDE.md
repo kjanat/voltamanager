@@ -69,9 +69,22 @@ This runs automatically via pre-commit hook. **Do not manually edit README.md**.
 
 ## Architecture
 
-### Single-Module Design
+### Multi-Module Design
 
-The entire application is contained in `src/voltamanager/__init__.py` (~255 lines). This is intentional for simplicity.
+The application has been refactored into separate modules for better organization:
+
+- `__init__.py` - Main CLI commands and Typer app definition
+- `__main__.py` - Entry point for `python -m voltamanager`
+- `cache.py` - npm version caching logic
+- `config.py` - Configuration file handling
+- `core.py` - Core functionality (dependency checks, package parsing, health checks)
+- `display.py` - Rich console output formatting and statistics
+- `logger.py` - Structured logging setup
+- `npm.py` - npm registry queries (single, batch, parallel)
+- `operations.py` - Package update operations
+- `security.py` - npm audit integration
+- `utils.py` - Version comparison and utility functions
+- `constants.py` - Shared constants
 
 ### Core Flow
 
@@ -103,10 +116,10 @@ Volta can pin packages to specific projects. These appear with version "project"
 ## Build System Notes
 
 - **Package Manager**: uv (modern Python package manager)
-- **Build Backend**: hatchling (specified in pyproject.toml)
+- **Build Backend**: uv_build (specified in pyproject.toml)
 - **Python Version**: Requires >=3.13
 - **Lock File**: uv.lock is automatically maintained by pre-commit hooks
-- **Core Dependencies**: Only `rich` and `typer` (pathlib, typing, notebook removed as unnecessary)
+- **Core Dependencies**: `rich`, `typer`, `packaging` for version parsing
 
 ## Important Pre-commit Behaviors
 
@@ -119,10 +132,27 @@ Pre-commit CI skips `cleanup` and `readme-gen` hooks (configured in `.pre-commit
 
 ## Testing
 
-Currently no test suite exists. When adding tests:
+Comprehensive test suite exists covering all modules:
 
-- Place tests in `tests/` directory (follow pre-commit hook convention)
-- Use naming convention `test_*.py` or `*_test.py` (enforced by pre-commit `name-tests-test` hook)
+```bash
+# Run all tests with coverage
+uv run pytest
+
+# Run specific test file
+uv run pytest tests/core_test.py
+
+# Run with verbose output
+uv run pytest -v
+
+# Show coverage report
+uv run pytest --cov=voltamanager --cov-report=html
+```
+
+Test Organization:
+
+- Place tests in `tests/` directory
+- Use naming convention `test_*.py` or `*_test.py` (enforced by pre-commit)
+- Test coverage configured for src/voltamanager with branch coverage enabled
 
 ## Volta Integration
 

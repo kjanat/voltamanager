@@ -1,8 +1,8 @@
 """NPM registry response caching."""
 
 import json
-from pathlib import Path
 from datetime import datetime, timedelta
+from pathlib import Path
 
 CACHE_DIR = Path.home() / ".cache" / "voltamanager"
 
@@ -16,12 +16,13 @@ def get_cached_version(package_name: str, ttl_hours: int = 1) -> str | None:
 
     Returns:
         Cached version string if valid, None otherwise
+
     """
     cache_ttl = timedelta(hours=ttl_hours)
     cache_file = CACHE_DIR / f"{package_name.replace('/', '_')}.json"
     if cache_file.exists():
         try:
-            data = json.loads(cache_file.read_text())
+            data = json.loads(cache_file.read_text(encoding="utf-8"))
             cached_time = datetime.fromisoformat(data["timestamp"])
             if datetime.now() - cached_time < cache_ttl:
                 version = data.get("version")
@@ -38,7 +39,8 @@ def cache_version(package_name: str, version: str) -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     cache_file = CACHE_DIR / f"{package_name.replace('/', '_')}.json"
     cache_file.write_text(
-        json.dumps({"version": version, "timestamp": datetime.now().isoformat()})
+        json.dumps({"version": version, "timestamp": datetime.now().isoformat()}),
+        encoding="utf-8",
     )
 
 

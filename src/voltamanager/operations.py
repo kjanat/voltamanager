@@ -1,31 +1,32 @@
 """Package operations and management."""
 
-import subprocess
 import json
-from pathlib import Path
+import subprocess
 from datetime import datetime
+from pathlib import Path
 
-from rich.console import Console
 import typer
+from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 
+from .cache import cache_version, get_cached_version
+from .config import Config
 from .core import parse_package
-from .npm import get_latest_versions_parallel
-from .cache import get_cached_version, cache_version
 from .display import (
-    display_table,
+    display_dry_run_report,
     display_json,
     display_statistics,
-    display_dry_run_report,
+    display_table,
 )
-from .config import Config
-from .logger import setup_logger, log_operation, log_error
+from .logger import log_error, log_operation, setup_logger
+from .npm import get_latest_versions_parallel
 from .utils import (
+    check_disk_space,
+    check_local_volta_config,
+    estimate_update_size,
+    get_changelog_url,
     get_major_updates,
     get_minor_updates,
-    get_changelog_url,
-    check_local_volta_config,
-    check_disk_space,
-    estimate_update_size,
 )
 
 console = Console()
@@ -41,7 +42,7 @@ def log_update(packages: list[str]) -> None:
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
 
     # Legacy history file
-    with open(HISTORY_FILE, "a") as f:
+    with open(HISTORY_FILE, "a", encoding="utf-8") as f:
         timestamp = datetime.now().isoformat()
         f.write(
             f"{timestamp} - Updated {len(packages)} packages: {', '.join(packages)}\n"
@@ -56,7 +57,7 @@ def log_update(packages: list[str]) -> None:
 def save_snapshot(packages: dict[str, str]) -> None:
     """Save current package state for rollback."""
     HISTORY_DIR.mkdir(parents=True, exist_ok=True)
-    SNAPSHOT_FILE.write_text(json.dumps(packages, indent=2))
+    SNAPSHOT_FILE.write_text(json.dumps(packages, indent=2), encoding="utf-8")
     log_operation(logger, "snapshot", count=len(packages))
 
 
@@ -75,7 +76,7 @@ def fast_install(packages: list[str], safe_dir: Path, dry_run: bool) -> int:
 
     try:
         log_operation(logger, "fast_install_start", count=len(packages))
-        subprocess.run(["volta", "install"] + packages, cwd=safe_dir, check=True)
+        subprocess.run(["volta", "install", *packages], cwd=safe_dir, check=True)
         log_update(packages)
         log_operation(logger, "fast_install_success", count=len(packages))
         return 0
@@ -86,7 +87,7 @@ def fast_install(packages: list[str], safe_dir: Path, dry_run: bool) -> int:
         return e.returncode
 
 
-def check_and_update(
+def check_and_update(  # noqa: C901, PLR0913, PLR0917, PLR0911, PLR0912, PLR0915, PLR0914
     namevers: list[str],
     safe_dir: Path,
     do_check: bool,
@@ -102,7 +103,6 @@ def check_and_update(
     all_packages: bool = False,
 ) -> int:
     """Check versions and optionally update packages."""
-
     # Check for local volta configuration
     check_local_volta_config(verbose)
 
@@ -220,7 +220,7 @@ def check_and_update(
             # Show info about excluded packages if not showing them
             if excluded_packages and not all_packages:
                 console.print(
-                    f"\n[dim]ℹ {len(excluded_packages)} package(s) excluded (use --all-packages to see them)[/dim]"
+                    f"\n[dim]i {len(excluded_packages)} package(s) excluded (use --all-packages to see them)[/dim]"
                 )
 
             # Warn about major version updates
@@ -243,7 +243,7 @@ def check_and_update(
 
             if minor_updates and do_update:
                 console.print(
-                    f"\n[cyan]ℹ {len(minor_updates)} minor/patch updates available (typically safe)[/cyan]"
+                    f"\n[cyan]i {len(minor_updates)} minor/patch updates available (typically safe)[/cyan]"
                 )
 
     # Perform updates
@@ -296,8 +296,6 @@ def check_and_update(
         save_snapshot(snapshot)
 
         # Update with progress indicator
-        from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
-
         with Progress(
             SpinnerColumn(),
             TextColumn("[progress.description]{task.description}"),
@@ -309,7 +307,7 @@ def check_and_update(
             )
             try:
                 subprocess.run(
-                    ["volta", "install"] + to_install, cwd=safe_dir, check=True
+                    ["volta", "install", *to_install], cwd=safe_dir, check=True
                 )
                 progress.update(task, completed=True)
                 console.print("[green]✓ Update complete[/green]")

@@ -1,12 +1,13 @@
 """Tests for configurable cache TTL functionality."""
 
 import json
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
-import tempfile
+
 import pytest
 
-from voltamanager.cache import get_cached_version, cache_version
+from voltamanager.cache import cache_version, get_cached_version
 
 
 @pytest.fixture
@@ -32,10 +33,10 @@ def test_cache_with_custom_ttl(temp_cache_dir):
 
     # Modify cache to be 2 hours old
     cache_file = temp_cache_dir / f"{package}.json"
-    data = json.loads(cache_file.read_text())
+    data = json.loads(cache_file.read_text(encoding="utf-8"))
     old_time = datetime.now() - timedelta(hours=2)
     data["timestamp"] = old_time.isoformat()
-    cache_file.write_text(json.dumps(data))
+    cache_file.write_text(json.dumps(data), encoding="utf-8")
 
     # Should be expired with 1 hour TTL
     assert get_cached_version(package, ttl_hours=1) is None
@@ -54,10 +55,10 @@ def test_cache_with_longer_ttl(temp_cache_dir):
 
     # Modify to be 12 hours old
     cache_file = temp_cache_dir / f"{package}.json"
-    data = json.loads(cache_file.read_text())
+    data = json.loads(cache_file.read_text(encoding="utf-8"))
     old_time = datetime.now() - timedelta(hours=12)
     data["timestamp"] = old_time.isoformat()
-    cache_file.write_text(json.dumps(data))
+    cache_file.write_text(json.dumps(data), encoding="utf-8")
 
     # Should be expired with 1 hour TTL
     assert get_cached_version(package, ttl_hours=1) is None
@@ -79,10 +80,10 @@ def test_cache_default_ttl(temp_cache_dir):
 
     # Make it 2 hours old
     cache_file = temp_cache_dir / f"{package}.json"
-    data = json.loads(cache_file.read_text())
+    data = json.loads(cache_file.read_text(encoding="utf-8"))
     old_time = datetime.now() - timedelta(hours=2)
     data["timestamp"] = old_time.isoformat()
-    cache_file.write_text(json.dumps(data))
+    cache_file.write_text(json.dumps(data), encoding="utf-8")
 
     # Should be expired with default 1 hour TTL
     assert get_cached_version(package) is None

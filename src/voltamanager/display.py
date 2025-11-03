@@ -1,21 +1,20 @@
 """Display formatting and output."""
 
 import json
-from typing import List
 
 from rich.console import Console
 from rich.table import Table
 
-from .utils import is_major_update
+from .utils import is_major_update, is_minor_update
 
 console = Console()
 
 
 def display_table(
-    names: List[str],
-    installed: List[str],
-    latest: List[str],
-    states: List[str],
+    names: list[str],
+    installed: list[str],
+    latest: list[str],
+    states: list[str],
     outdated_only: bool = False,
 ) -> None:
     """Display package status as a rich table."""
@@ -26,7 +25,7 @@ def display_table(
     table.add_column("Status", width=12)
 
     for i in range(len(names)):
-        if outdated_only and states[i] not in ["OUTDATED", "UNKNOWN"]:
+        if outdated_only and states[i] not in {"OUTDATED", "UNKNOWN"}:
             continue
 
         status_style = ""
@@ -68,7 +67,7 @@ def display_table(
 
 
 def display_json(
-    names: List[str], installed: List[str], latest: List[str], states: List[str]
+    names: list[str], installed: list[str], latest: list[str], states: list[str]
 ) -> None:
     """Display package status as JSON."""
     result = [
@@ -83,15 +82,13 @@ def display_json(
     console.print(json.dumps(result, indent=2))
 
 
-def display_statistics(
-    states: List[str],
-    names: List[str] | None = None,
-    installed: List[str] | None = None,
-    latest: List[str] | None = None,
+def display_statistics(  # noqa: C901, PLR0912
+    states: list[str],
+    names: list[str] | None = None,
+    installed: list[str] | None = None,
+    latest: list[str] | None = None,
 ) -> None:
     """Display summary statistics with enhanced reporting."""
-    from .utils import is_major_update, is_minor_update
-
     console.print("\n[bold]Summary:[/bold]")
     total = len(states)
     up_to_date = states.count("up-to-date")
@@ -159,10 +156,10 @@ def display_statistics(
 
 
 def display_dry_run_report(
-    to_install: List[str],
-    names: List[str],
-    installed: List[str],
-    latest: List[str],
+    to_install: list[str],
+    names: list[str],
+    installed: list[str],
+    latest: list[str],
 ) -> None:
     """Display detailed dry-run report."""
     console.print("[cyan]Dry Run Report:[/cyan]")

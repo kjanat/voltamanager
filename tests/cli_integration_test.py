@@ -3,6 +3,7 @@
 import json
 from pathlib import Path
 from unittest.mock import Mock, patch
+
 from typer.testing import CliRunner
 
 from voltamanager import app
@@ -70,7 +71,8 @@ class TestMainCommandIntegration:
 class TestConfigCommandIntegration:
     """Integration tests for config command."""
 
-    def test_config_help(self):
+    @staticmethod
+    def test_config_help():
         """Test config command help."""
         result = runner.invoke(app, ["config", "--help"])
         assert result.exit_code == 0
@@ -87,7 +89,8 @@ class TestConfigCommandIntegration:
 class TestClearCacheCommandIntegration:
     """Integration tests for clear-cache command."""
 
-    def test_clear_cache_help(self):
+    @staticmethod
+    def test_clear_cache_help():
         """Test clear-cache command help."""
         result = runner.invoke(app, ["clear-cache", "--help"])
         assert result.exit_code == 0
@@ -103,7 +106,8 @@ class TestClearCacheCommandIntegration:
 class TestLogsCommandIntegration:
     """Integration tests for logs command."""
 
-    def test_logs_help(self):
+    @staticmethod
+    def test_logs_help():
         """Test logs command help."""
         result = runner.invoke(app, ["logs", "--help"])
         assert result.exit_code == 0
@@ -126,7 +130,8 @@ class TestLogsCommandIntegration:
 class TestRollbackCommandIntegration:
     """Integration tests for rollback command."""
 
-    def test_rollback_help(self):
+    @staticmethod
+    def test_rollback_help():
         """Test rollback command help."""
         result = runner.invoke(app, ["rollback", "--help"])
         assert result.exit_code == 0
@@ -146,7 +151,7 @@ class TestRollbackCommandIntegration:
         snapshot_dir = tmp_path / ".voltamanager"
         snapshot_dir.mkdir()
         snapshot_file = snapshot_dir / "last_snapshot.json"  # Correct filename
-        snapshot_file.write_text(json.dumps({"typescript": "4.9.5"}))
+        snapshot_file.write_text(json.dumps({"typescript": "4.9.5"}), encoding="utf-8")
 
         with patch("pathlib.Path.home", return_value=tmp_path):
             result = runner.invoke(app, ["rollback"], input="n\n")
@@ -159,7 +164,9 @@ class TestRollbackCommandIntegration:
         snapshot_dir = tmp_path / ".voltamanager"
         snapshot_dir.mkdir()
         snapshot_file = snapshot_dir / "last_snapshot.json"  # Correct filename
-        snapshot_file.write_text(json.dumps({"typescript": "4.9.5", "eslint": "8.0.0"}))
+        snapshot_file.write_text(
+            json.dumps({"typescript": "4.9.5", "eslint": "8.0.0"}), encoding="utf-8"
+        )
 
         with patch("pathlib.Path.home", return_value=tmp_path):
             with patch("subprocess.run") as mock_subprocess:

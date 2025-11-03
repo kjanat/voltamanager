@@ -5,7 +5,6 @@ import subprocess
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-
 from voltamanager.npm import (
     get_latest_version,
     get_latest_versions_batch,
@@ -58,7 +57,7 @@ class TestGetLatestVersion:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(stdout="", returncode=0)
             version = get_latest_version("lodash", tmp_path)
-            assert version == ""
+            assert not version
 
 
 class TestGetLatestVersionsBatch:
@@ -218,7 +217,7 @@ class TestGetLatestVersionsParallel:
 
         def mock_version(name: str, _: Path) -> str | None:
             if name == "error-pkg":
-                raise Exception("Network error")
+                raise Exception("Network error")  # noqa: TRY002, TRY003
             return "2.0.0"
 
         with patch("voltamanager.npm.get_latest_version", side_effect=mock_version):

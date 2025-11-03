@@ -31,8 +31,8 @@
 #### 2. Test Coverage Achievement
 
 | Module | v0.6.0 | v0.7.0 | Improvement |
-|--------|--------|--------|-------------|
-| **__init__.py** | **18%** | **75%** | **+316%** |
+| -------------------- | ------- | ------- | ----------- |
+| **\_\_init\_\_.py** | **18%** | **75%** | **+316%** |
 | logger.py | 61% | 69% | +13% |
 | operations.py | ~40% | 80% | +100% |
 | display.py | ~50% | 100% | +100% |
@@ -46,7 +46,7 @@
 
 **Coverage Highlights**:
 
-- __init__.py improved by 316% (18% → 75%)
+- \_\_init\_\_.py improved by 316% (18% → 75%)
 - All CLI commands now tested
 - Integration test patterns established for future development
 
@@ -141,7 +141,7 @@ VoltaManager is now **feature complete** with all planned improvements implement
 ### Comparison with Initial Goals
 
 | Feature | Initial Goal | Achievement | Status |
-|---------|--------------|-------------|--------|
+| ------------------- | ------------------ | ------------------- | ----------- |
 | Parallel checks | 5-10x faster | 10x faster | ✅ Complete |
 | Progress indicators | Rich progress bars | Implemented | ✅ Complete |
 | Caching | npm registry cache | 1-hour TTL | ✅ Complete |
@@ -202,7 +202,7 @@ While feature complete, potential future enhancements:
 
 ### Quality Improvements
 
-- __main__.py coverage: 0% → 80%
+- \_\_main\_\_.py coverage: 0% → 80%
 - logger.py coverage: 69% → 90%
 - Mutation testing: Ensure test quality
 - Property-based testing: Hypothesis framework

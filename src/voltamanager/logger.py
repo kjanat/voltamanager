@@ -2,8 +2,8 @@
 
 import logging
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Any, TypedDict
 
 
@@ -54,6 +54,7 @@ def setup_logger(verbose: bool = False) -> logging.Logger:
 
     Returns:
         Configured logger instance
+
     """
     # Create logger
     logger = logging.getLogger("voltamanager")
@@ -88,6 +89,7 @@ def log_operation(logger: logging.Logger, operation: str, **kwargs: Any) -> None
         logger: Logger instance
         operation: Operation name (e.g., 'check', 'update', 'install')
         **kwargs: Additional structured data (package, version, count, etc.)
+
     """
     logger.info(f"Operation: {operation}", extra={"operation": operation, **kwargs})
 
@@ -102,6 +104,7 @@ def log_package_update(
         package: Package name
         old_version: Previous version
         new_version: New version
+
     """
     logger.info(
         f"Updated {package}: {old_version} → {new_version}",
@@ -121,6 +124,7 @@ def log_error(logger: logging.Logger, message: str, **kwargs: Any) -> None:
         logger: Logger instance
         message: Error message
         **kwargs: Additional context
+
     """
     logger.error(message, extra=kwargs)
 
@@ -130,6 +134,7 @@ def get_log_stats() -> LogStats:
 
     Returns:
         Dictionary with log statistics
+
     """
     if not LOG_FILE.exists():
         return {"total_lines": 0, "operations": {}, "errors": 0, "updates": 0}
@@ -141,7 +146,7 @@ def get_log_stats() -> LogStats:
         "updates": 0,
     }
 
-    with open(LOG_FILE) as f:
+    with open(LOG_FILE, encoding="utf-8") as f:
         for line in f:
             stats["total_lines"] += 1
             if " ERROR " in line:

@@ -56,7 +56,7 @@
 - Updated function signature and docstring
 - Dynamic TTL calculation using `timedelta(hours=ttl_hours)`
 
-**src/voltamanager/__init__.py** (+3 lines):
+**src/voltamanager/\_\_init\_\_.py** (+3 lines):
 
 - Added `--all-packages` / `-a` flag option
 - Enabled shell completion: `add_completion=True`
@@ -134,7 +134,7 @@
 **Test Coverage**: 88.31% overall (+0.52% from v0.10.0)
 
 | Module | Coverage |
-|--------|----------|
+| --------------- | -------- |
 | cache.py | 100.00% |
 | logger.py | 100.00% |
 | npm.py | 97.30% |
@@ -143,7 +143,7 @@
 | config.py | 94.94% |
 | utils.py | 94.17% |
 | operations.py | 90.38% |
-| __init__.py | 74.79% |
+| \_\_init\_\_.py | 74.79% |
 
 ### Project Status: Production Ready with Enhanced Safety
 

@@ -2,21 +2,21 @@
 
 import logging
 
-
 from voltamanager.logger import (
     StructuredFormatter,
-    setup_logger,
+    get_log_stats,
+    log_error,
     log_operation,
     log_package_update,
-    log_error,
-    get_log_stats,
+    setup_logger,
 )
 
 
 class TestStructuredFormatter:
     """Test StructuredFormatter."""
 
-    def test_format_basic_message(self):
+    @staticmethod
+    def test_format_basic_message():
         """Format a basic log message without extras."""
         formatter = StructuredFormatter()
         record = logging.LogRecord(
@@ -33,7 +33,8 @@ class TestStructuredFormatter:
         assert "Test message" in result
         assert "[" not in result  # No extras
 
-    def test_format_with_package(self):
+    @staticmethod
+    def test_format_with_package():
         """Format message with package attribute."""
         formatter = StructuredFormatter()
         record = logging.LogRecord(
@@ -49,7 +50,8 @@ class TestStructuredFormatter:
         result = formatter.format(record)
         assert "package=test-package" in result
 
-    def test_format_with_version(self):
+    @staticmethod
+    def test_format_with_version():
         """Format message with version attribute."""
         formatter = StructuredFormatter()
         record = logging.LogRecord(
@@ -65,7 +67,8 @@ class TestStructuredFormatter:
         result = formatter.format(record)
         assert "version=1.0.0" in result
 
-    def test_format_with_operation(self):
+    @staticmethod
+    def test_format_with_operation():
         """Format message with operation attribute."""
         formatter = StructuredFormatter()
         record = logging.LogRecord(
@@ -81,7 +84,8 @@ class TestStructuredFormatter:
         result = formatter.format(record)
         assert "operation=check" in result
 
-    def test_format_with_count(self):
+    @staticmethod
+    def test_format_with_count():
         """Format message with count attribute."""
         formatter = StructuredFormatter()
         record = logging.LogRecord(
@@ -97,7 +101,8 @@ class TestStructuredFormatter:
         result = formatter.format(record)
         assert "count=42" in result
 
-    def test_format_with_all_extras(self):
+    @staticmethod
+    def test_format_with_all_extras():
         """Format message with all extra attributes."""
         formatter = StructuredFormatter()
         record = logging.LogRecord(
@@ -194,7 +199,7 @@ class TestLogOperation:
         logger = setup_logger()
         log_operation(logger, "test_operation")
 
-        log_content = log_file.read_text()
+        log_content = log_file.read_text(encoding="utf-8")
         assert "test_operation" in log_content
         assert "operation=test_operation" in log_content
 
@@ -208,7 +213,7 @@ class TestLogOperation:
         logger = setup_logger()
         log_operation(logger, "check", count=5, package="test-pkg")
 
-        log_content = log_file.read_text()
+        log_content = log_file.read_text(encoding="utf-8")
         assert "check" in log_content
         assert "count=5" in log_content
         assert "package=test-pkg" in log_content
@@ -227,7 +232,7 @@ class TestLogPackageUpdate:
         logger = setup_logger()
         log_package_update(logger, "lodash", "4.17.20", "4.17.21")
 
-        log_content = log_file.read_text()
+        log_content = log_file.read_text(encoding="utf-8")
         assert "lodash" in log_content
         assert "4.17.20" in log_content
         assert "4.17.21" in log_content
@@ -243,7 +248,7 @@ class TestLogPackageUpdate:
         logger = setup_logger()
         log_package_update(logger, "@vue/cli", "5.0.0", "5.0.8")
 
-        log_content = log_file.read_text()
+        log_content = log_file.read_text(encoding="utf-8")
         assert "@vue/cli" in log_content
         assert "5.0.0" in log_content
         assert "5.0.8" in log_content
@@ -262,7 +267,7 @@ class TestLogError:
         logger = setup_logger()
         log_error(logger, "Test error message")
 
-        log_content = log_file.read_text()
+        log_content = log_file.read_text(encoding="utf-8")
         assert "ERROR" in log_content
         assert "Test error message" in log_content
 
@@ -276,7 +281,7 @@ class TestLogError:
         logger = setup_logger()
         log_error(logger, "Failed operation", package="test-pkg", count=3)
 
-        log_content = log_file.read_text()
+        log_content = log_file.read_text(encoding="utf-8")
         assert "ERROR" in log_content
         assert "Failed operation" in log_content
         assert "package=test-pkg" in log_content
@@ -316,7 +321,8 @@ class TestGetLogStats:
             "2025-09-30T10:00:00 INFO     Operation: check\n"
             "2025-09-30T10:01:00 INFO     Operation: update\n"
             "2025-09-30T10:02:00 INFO     Operation: update\n"
-            "2025-09-30T10:03:00 ERROR    Failed to install\n"
+            "2025-09-30T10:03:00 ERROR    Failed to install\n",
+            encoding="utf-8",
         )
         monkeypatch.setattr("voltamanager.logger.LOG_FILE", log_file)
 
@@ -334,7 +340,8 @@ class TestGetLogStats:
         log_file.write_text(
             "2025-09-30T10:00:00 INFO     Operation:\n"  # Malformed
             "Random text without structure\n"
-            "2025-09-30T10:01:00 INFO     Operation: check\n"
+            "2025-09-30T10:01:00 INFO     Operation: check\n",
+            encoding="utf-8",
         )
         monkeypatch.setattr("voltamanager.logger.LOG_FILE", log_file)
 
@@ -363,7 +370,7 @@ class TestLoggerIntegration:
 
         # Verify log file
         assert log_file.exists()
-        log_content = log_file.read_text()
+        log_content = log_file.read_text(encoding="utf-8")
         assert "Operation: check" in log_content
         assert "lodash" in log_content
         assert "ERROR" in log_content

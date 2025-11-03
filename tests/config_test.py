@@ -35,13 +35,16 @@ class TestConfig:
     def test_load_valid_config(self, mock_config_file: Path) -> None:
         """Test loading valid configuration file."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = ["npm", "@vue/cli"]
 include_project = true
 cache_ttl_hours = 24
 parallel_checks = 5
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -53,11 +56,14 @@ parallel_checks = 5
     def test_load_partial_config(self, mock_config_file: Path) -> None:
         """Test loading config with only some values set."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = ["npm"]
 cache_ttl_hours = 12
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -69,7 +75,7 @@ cache_ttl_hours = 12
     def test_load_empty_voltamanager_section(self, mock_config_file: Path) -> None:
         """Test loading config with empty voltamanager section."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("[voltamanager]\n")
+        mock_config_file.write_text("[voltamanager]\n", encoding="utf-8")
 
         config = Config()
 
@@ -81,7 +87,7 @@ cache_ttl_hours = 12
     def test_load_missing_voltamanager_section(self, mock_config_file: Path) -> None:
         """Test loading config without voltamanager section."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("[other_section]\nvalue = 1\n")
+        mock_config_file.write_text("[other_section]\nvalue = 1\n", encoding="utf-8")
 
         config = Config()
 
@@ -92,7 +98,7 @@ cache_ttl_hours = 12
     def test_load_invalid_toml(self, mock_config_file: Path) -> None:
         """Test handling invalid TOML syntax."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("not valid toml [[[")
+        mock_config_file.write_text("not valid toml [[[", encoding="utf-8")
 
         config = Config()
 
@@ -103,10 +109,13 @@ cache_ttl_hours = 12
     def test_load_invalid_type_exclude(self, mock_config_file: Path) -> None:
         """Test handling invalid type for exclude (not a list)."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = "npm"
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -116,10 +125,13 @@ exclude = "npm"
     def test_load_invalid_type_include_project(self, mock_config_file: Path) -> None:
         """Test handling invalid type for include_project (not a bool)."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 include_project = "yes"
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -129,10 +141,13 @@ include_project = "yes"
     def test_load_invalid_type_cache_ttl(self, mock_config_file: Path) -> None:
         """Test handling invalid type for cache_ttl_hours (not an int)."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 cache_ttl_hours = "24"
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -142,10 +157,13 @@ cache_ttl_hours = "24"
     def test_load_invalid_type_parallel(self, mock_config_file: Path) -> None:
         """Test handling invalid type for parallel_checks (not an int)."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 parallel_checks = 5.5
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -155,10 +173,13 @@ parallel_checks = 5.5
     def test_exclude_list_with_non_strings(self, mock_config_file: Path) -> None:
         """Test handling exclude list with non-string values."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = ["npm", 123, "@vue/cli", true]
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -168,10 +189,13 @@ exclude = ["npm", 123, "@vue/cli", true]
     def test_should_exclude_included_package(self, mock_config_file: Path) -> None:
         """Test should_exclude with package in exclude list."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = ["npm", "@vue/cli"]
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -181,10 +205,13 @@ exclude = ["npm", "@vue/cli"]
     def test_should_exclude_not_included_package(self, mock_config_file: Path) -> None:
         """Test should_exclude with package not in exclude list."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = ["npm"]
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 
@@ -209,7 +236,7 @@ class TestCreateDefaultConfig:
         create_default_config()
 
         assert mock_config_file.exists()
-        content = mock_config_file.read_text()
+        content = mock_config_file.read_text(encoding="utf-8")
 
         # Verify content includes all expected sections
         assert "[voltamanager]" in content
@@ -226,12 +253,12 @@ class TestCreateDefaultConfig:
 exclude = ["custom"]
 cache_ttl_hours = 999
 """
-        mock_config_file.write_text(original_content)
+        mock_config_file.write_text(original_content, encoding="utf-8")
 
         create_default_config()
 
         # Should not overwrite
-        assert mock_config_file.read_text() == original_content
+        assert mock_config_file.read_text(encoding="utf-8") == original_content
 
     def test_create_default_config_creates_directory(
         self, mock_config_file: Path
@@ -246,7 +273,7 @@ cache_ttl_hours = 999
 
     def test_default_config_is_valid_toml(self, mock_config_file: Path) -> None:
         """Test that created default config is valid TOML."""
-        import tomllib
+        import tomllib  # noqa: PLC0415
 
         create_default_config()
 
@@ -269,22 +296,28 @@ class TestConfigIntegration:
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Initial config
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = ["npm"]
 cache_ttl_hours = 12
-""")
+""",
+            encoding="utf-8",
+        )
 
         config1 = Config()
         assert config1.exclude == ["npm"]
         assert config1.cache_ttl_hours == 12
 
         # Update config file
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 [voltamanager]
 exclude = ["npm", "yarn"]
 cache_ttl_hours = 24
-""")
+""",
+            encoding="utf-8",
+        )
 
         config2 = Config()
         assert config2.exclude == ["npm", "yarn"]
@@ -293,7 +326,8 @@ cache_ttl_hours = 24
     def test_config_with_comments(self, mock_config_file: Path) -> None:
         """Test that config handles comments correctly."""
         mock_config_file.parent.mkdir(parents=True, exist_ok=True)
-        mock_config_file.write_text("""
+        mock_config_file.write_text(
+            """
 # VoltaManager Configuration
 [voltamanager]
 
@@ -308,7 +342,9 @@ cache_ttl_hours = 24
 
 # Parallel execution limit
 parallel_checks = 15
-""")
+""",
+            encoding="utf-8",
+        )
 
         config = Config()
 

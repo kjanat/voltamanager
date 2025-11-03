@@ -46,12 +46,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Configurable Cache TTL**: Cache time-to-live now respects `cache_ttl_hours` from config
+
   - `get_cached_version()` accepts `ttl_hours` parameter
   - Operations use configured TTL from Config class
   - Enables longer cache durations for stability (e.g., 24 hours)
   - Default remains 1 hour for backward compatibility
 
 - **--all-packages Flag**: Show excluded packages in status table
+
   - `voltamanager --all-packages`: Display all packages including excluded ones
   - Excluded packages shown with `EXCLUDED` status in dim red
   - Info message when packages are excluded (and not shown)
@@ -59,12 +61,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Example: `voltamanager --all-packages` or `voltamanager -a`
 
 - **Shell Completion**: Built-in tab completion for commands and options
+
   - Typer's native completion system enabled
   - Works with bash, zsh, fish shells
   - Install with: `voltamanager --install-completion`
   - Enhances CLI usability and discoverability
 
 - **Pre-Update Safety Checks**: Disk space validation before updates
+
   - Estimates update size (~50MB per package)
   - Checks available disk space automatically
   - Blocks updates if insufficient space
@@ -74,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Examples show: available space, estimated need, recommendations
 
 - **Enhanced Error Messages**: Better user guidance throughout
+
   - Disk space errors include specific MB counts and suggestions
   - Clear action items when operations fail
   - Improved formatting with Rich console output
@@ -113,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Selective Rollback**: Target specific packages for rollback instead of all
+
   - `voltamanager rollback [PACKAGES...]`: Rollback one or more specific packages
   - `voltamanager rollback`: Continue to support rolling back all packages (original behavior)
   - Warnings when requested packages aren't in snapshot
@@ -120,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Examples: `voltamanager rollback typescript eslint --force`
 
 - **Pin/Unpin Commands**: Persistent package exclusion management
+
   - `voltamanager pin [PACKAGES...]`: Add packages to exclude list (prevent updates)
   - `voltamanager pin --unpin [PACKAGES...]`: Remove packages from exclude list
   - Automatically updates config file with changes
@@ -128,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Examples: `voltamanager pin typescript eslint`, `voltamanager pin --unpin prettier`
 
 - **Package Info Command**: Detailed package information lookup
+
   - `voltamanager info <package>`: Show comprehensive package metadata
   - Displays description, latest version, license, homepage, repository
   - Shows maintainer information (first 3)
@@ -181,6 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Enhanced Logging Features**: Comprehensive log management capabilities
+
   - `--tail N` / `-n N`: Show last N log lines (default: 20)
   - `--search TEXT` / `-s TEXT`: Filter logs by search term (case-insensitive)
   - `--clear`: Clear all log files with confirmation prompt
@@ -188,6 +197,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Smart log display with context-aware formatting
 
 - **Performance Benchmarking**: New `bench` command for measuring npm registry query performance
+
   - Sequential vs parallel query comparisons
   - Multi-worker concurrency testing (10 vs 20 workers)
   - Speedup calculations and performance metrics
@@ -196,12 +206,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Customizable test package count (`--packages N` / `-p N`)
 
 - **Testing Excellence**: Added 31 new comprehensive tests
+
   - 9 new tests for bench command (integration tests)
   - 22 new tests for enhanced logs features (edge cases, combinations, color coding)
   - Total test count: 151 → 182 tests (+20% growth)
   - All tests passing with 85.23% overall coverage
 
 - **Configuration Enhancements**: pytest and coverage configuration in pyproject.toml
+
   - Branch coverage enabled for more thorough testing
   - HTML coverage reports with detailed missing line tracking
   - Consistent test discovery patterns
@@ -210,6 +222,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improved
 
 - **Test Coverage**: Maintained excellent coverage despite new features
+
   - Overall coverage: 85.23% (692 statements, 81 missing)
   - \_\_init\_\_.py coverage: 86.67% (was 75% in v0.7.0)
   - npm.py coverage: 97.30%
@@ -217,11 +230,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 31 new tests added without coverage regression
 
 - **Logs Command**: Major user experience improvements
+
   - Previously: Limited to last 20 entries, no filtering
   - Now: Configurable tail, search filtering, color coding, clearing
   - Better visibility into application history and debugging
 
 - **Developer Experience**: Enhanced benchmarking capabilities
+
   - Quick performance validation for optimization work
   - Clear comparison metrics for parallel vs sequential operations
   - Real-world package testing with popular npm packages
@@ -247,11 +262,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improved
 
 - **Test Coverage**: Increased from 75% to 85% overall coverage
+
   - `__init__.py`: 18% → 75% (+316% improvement)
   - Total test count: 136 → 151 tests (+15 tests)
   - All 151 tests passing with zero failures
 
 - **Testing Quality**: Integration tests use real filesystem operations with tmp_path
+
   - Proper mocking of subprocess calls for rollback operations
   - Realistic user interaction simulations
   - Command-line interface validation
@@ -279,24 +296,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Enhanced Breaking Change Detection**: Major version updates now show direct changelog links
+
   - Display up to 5 major updates with npm package version URLs
   - Show count of additional major updates if more than 5
   - Added `get_changelog_url()` and `get_minor_updates()` utility functions
   - Minor/patch updates indicator for safer updates
 
 - **Improved Rollback Safety**: Enhanced rollback command with confirmation and preview
+
   - Preview table shows packages and versions to be restored (first 10)
   - Confirmation prompt before rollback (skip with `--force`)
   - Better error messages for partial rollback failures
   - Snapshot creation feedback with structured logging
 
 - **Better Error Messages**: More helpful error output with actionable suggestions
+
   - Volta missing: Installation instructions with curl command and restart reminder
   - npm missing: Volta-based installation steps with verification commands
   - Package list errors: Specific error codes and troubleshooting suggestions
   - All errors now include 💡 suggestions for resolution
 
 - **Comprehensive Test Suite Expansion**: Added 41 new tests for operations and display modules
+
   - `operations_test.py`: 23 tests for check/update workflows, caching, interactive mode
   - `display_test.py`: 18 tests for table/JSON output, statistics, dry-run reports
   - Total test count: 136 tests (up from 95, +43% increase)
@@ -305,12 +326,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improved
 
 - **Display Module Robustness**: Better handling of edge cases
+
   - Escape special characters in version strings (`[`, `]`) for rich markup
   - Handle empty status styles properly to avoid markup errors
   - Fixed UNKNOWN state display with `?` version placeholders
   - Major update warning symbol (⚠) now shows only for valid version strings
 
 - **Operations Module Testing**: Comprehensive workflow coverage
+
   - Fast install with/without dry-run
   - Cache-enabled vs no-cache version checking
   - Interactive selection with user cancellation
@@ -319,6 +342,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Snapshot and history logging validation
 
 - **Error Handling**: More informative error messages throughout
+
   - Subprocess errors include return codes and stderr output
   - Suggestions formatted as bullet lists with command examples
   - Color-coded messages (red for errors, yellow for warnings, cyan for commands)
@@ -448,7 +472,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved code quality with strict type checking
 - Professional logging for debugging and monitoring
 
----
+______________________________________________________________________
 
 ## [0.2.0] - 2025-09-30
 
@@ -529,7 +553,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed scoped package parsing without version (e.g., `@vue/cli`)
 - Improved handling of edge cases in package name parsing
 
----
+______________________________________________________________________
 
 ## [0.1.0] - Initial Release
 

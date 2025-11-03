@@ -20,6 +20,7 @@ class Config:
     """Configuration for voltamanager."""
 
     def __init__(self) -> None:
+        """Initialize configuration from voltamanager.toml."""
         self.exclude: list[str] = []
         self.include_project: bool = False
         self.cache_ttl_hours: int = 1
@@ -93,7 +94,7 @@ cache_ttl_hours = {self.cache_ttl_hours}
 # Number of parallel npm registry checks
 parallel_checks = {self.parallel_checks}
 """
-        CONFIG_FILE.write_text(config_content)
+        CONFIG_FILE.write_text(config_content, encoding="utf-8")
 
 
 def create_default_config() -> None:
@@ -113,5 +114,6 @@ cache_ttl_hours = 1
 
 # Number of parallel npm registry checks
 parallel_checks = 10
-"""
+""",
+            encoding="utf-8",
         )

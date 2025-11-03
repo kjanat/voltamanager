@@ -87,7 +87,7 @@ class TestBenchIntegration:
         """Test that bench shows speedup calculations."""
         result = runner.invoke(app, ["bench", "--packages", "2"])
         assert result.exit_code == 0
-        # Baseline should be 1.00×
-        assert "1.00×" in result.stdout or "1.0×" in result.stdout
+        # Baseline should be 1.00x
+        assert "1.00x" in result.stdout or "1.0x" in result.stdout
         # Should have speedup multipliers
-        assert "×" in result.stdout
+        assert "x" in result.stdout

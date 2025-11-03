@@ -1,12 +1,12 @@
 """NPM registry interactions."""
 
-import subprocess
 import json
-from pathlib import Path
+import subprocess
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn
 from rich.console import Console
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
 console = Console()
 
@@ -40,7 +40,7 @@ def get_latest_versions_batch(
     try:
         # Try batch query with npm view --json
         result = subprocess.run(
-            ["npm", "view", "--json"] + package_names + ["version"],
+            ["npm", "view", "--json", *package_names, "version"],
             cwd=safe_dir,
             capture_output=True,
             text=True,

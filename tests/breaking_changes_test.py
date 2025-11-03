@@ -12,7 +12,8 @@ runner = CliRunner()
 class TestBreakingChangesCommand:
     """Tests for voltamanager breaking-changes command."""
 
-    def test_no_packages_installed(self) -> None:
+    @staticmethod
+    def test_no_packages_installed() -> None:
         """Test with no packages installed."""
         with patch("voltamanager.get_installed_packages", return_value=[]):
             result = runner.invoke(app, ["breaking-changes"])
@@ -20,7 +21,8 @@ class TestBreakingChangesCommand:
             assert result.exit_code == 0
             assert "No Volta-managed packages found" in result.stdout
 
-    def test_no_major_updates(self) -> None:
+    @staticmethod
+    def test_no_major_updates() -> None:
         """Test when all packages are up-to-date or have minor updates only."""
         with (
             patch(
@@ -38,7 +40,8 @@ class TestBreakingChangesCommand:
             assert "No major version updates detected" in result.stdout
             assert "up-to-date or have minor/patch updates only" in result.stdout
 
-    def test_with_major_updates(self) -> None:
+    @staticmethod
+    def test_with_major_updates() -> None:
         """Test when major updates are detected."""
         with (
             patch(
@@ -64,7 +67,8 @@ class TestBreakingChangesCommand:
             # lodash should not appear (minor update only)
             assert "Breaking Changes Warning" in result.stdout
 
-    def test_with_specific_package(self) -> None:
+    @staticmethod
+    def test_with_specific_package() -> None:
         """Test checking a specific package."""
         with (
             patch(
@@ -82,7 +86,8 @@ class TestBreakingChangesCommand:
             assert "typescript" in result.stdout
             # Don't check for specific version in output due to table truncation
 
-    def test_with_specific_package_not_installed(self) -> None:
+    @staticmethod
+    def test_with_specific_package_not_installed() -> None:
         """Test checking a package that isn't installed."""
         with patch(
             "voltamanager.get_installed_packages", return_value=["eslint@8.40.0"]
@@ -92,7 +97,8 @@ class TestBreakingChangesCommand:
             assert result.exit_code == 1
             assert "None of the specified packages are installed" in result.stdout
 
-    def test_with_unknown_version(self) -> None:
+    @staticmethod
+    def test_with_unknown_version() -> None:
         """Test handling of packages with unknown latest versions."""
         with (
             patch(
@@ -111,7 +117,8 @@ class TestBreakingChangesCommand:
             assert "typescript" in result.stdout
             # private-pkg should not appear (unknown version)
 
-    def test_skips_project_pinned(self) -> None:
+    @staticmethod
+    def test_skips_project_pinned() -> None:
         """Test that project-pinned packages are skipped."""
         with (
             patch(
@@ -129,7 +136,8 @@ class TestBreakingChangesCommand:
             # Should only check typescript
             assert "Checking 1 packages" in result.stdout
 
-    def test_changelog_links_included(self) -> None:
+    @staticmethod
+    def test_changelog_links_included() -> None:
         """Test that changelog links are included in output."""
         with (
             patch(
@@ -147,7 +155,8 @@ class TestBreakingChangesCommand:
             # Should include changelog URL
             assert "npmjs.com" in result.stdout or "Changelog" in result.stdout
 
-    def test_multiple_specific_packages(self) -> None:
+    @staticmethod
+    def test_multiple_specific_packages() -> None:
         """Test checking multiple specific packages."""
         with (
             patch(

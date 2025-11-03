@@ -1,11 +1,14 @@
 """Core logic for package management."""
 
+import os
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
-from typing import List, Tuple, TypedDict
+from typing import TypedDict
 
 from rich.console import Console
+from rich.table import Table
 
 
 class HealthCheckResult(TypedDict):
@@ -45,7 +48,7 @@ def check_dependencies() -> bool:
     return True
 
 
-def get_installed_packages(safe_dir: Path) -> List[str]:
+def get_installed_packages(safe_dir: Path) -> list[str]:
     """Get the list of Volta-managed packages."""
     try:
         result = subprocess.run(
@@ -55,10 +58,11 @@ def get_installed_packages(safe_dir: Path) -> List[str]:
             text=True,
             check=True,
         )
-        packages = []
-        for line in result.stdout.splitlines():
-            if line.startswith("package "):
-                packages.append(line.split()[1])
+        packages = [
+            line.split()[1]
+            for line in result.stdout.splitlines()
+            if line.startswith("package ")
+        ]
         return packages
     except subprocess.CalledProcessError as e:
         console.print("[red]✗ Failed to get installed packages[/red]")
@@ -73,7 +77,7 @@ def get_installed_packages(safe_dir: Path) -> List[str]:
         return []
 
 
-def parse_package(name_ver: str) -> Tuple[str, str]:
+def parse_package(name_ver: str) -> tuple[str, str]:
     """Parse the package@version string into (name, version)."""
     if "@" not in name_ver:
         return name_ver, ""
@@ -92,13 +96,14 @@ def parse_package(name_ver: str) -> Tuple[str, str]:
     return parts[0], parts[1] if len(parts) > 1 else ""
 
 
-def check_volta_health() -> HealthCheckResult:
+def check_volta_health(  # noqa: C901, PLR0912
+) -> HealthCheckResult:
     """Perform comprehensive health check of volta installation.
 
     Returns:
         Dictionary containing health check results
-    """
 
+    """
     results: HealthCheckResult = {
         "volta_installed": False,
         "npm_installed": False,
@@ -164,7 +169,6 @@ def check_volta_health() -> HealthCheckResult:
         results["issues"].append("node not found in PATH")
 
     # Check VOLTA_HOME
-    import os
 
     volta_home = os.environ.get("VOLTA_HOME")
     if volta_home:
@@ -179,8 +183,6 @@ def check_volta_health() -> HealthCheckResult:
     # Check installed packages count
     if results["volta_installed"]:
         try:
-            import tempfile
-
             with tempfile.TemporaryDirectory() as tmpdir:
                 packages = get_installed_packages(Path(tmpdir))
                 results["packages_count"] = len(packages)
@@ -195,9 +197,8 @@ def display_health_check(results: HealthCheckResult) -> None:
 
     Args:
         results: Health check results dictionary
-    """
-    from rich.table import Table
 
+    """
     console.print("\n[bold]Volta Manager Health Check[/bold]\n")
 
     # Status table

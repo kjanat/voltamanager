@@ -10,7 +10,7 @@
 
 ### Key Improvements
 
-#### 1. Enhanced Logging Features (+88 lines in __init__.py)
+#### 1. Enhanced Logging Features (+88 lines in \_\_init\_\_.py)
 
 **New Logs Command Options**:
 
@@ -31,7 +31,7 @@
 - Empty search results show helpful message
 - Handles edge cases: empty logs, single line, very long lines
 
-#### 2. Performance Benchmarking Command (+97 lines in __init__.py)
+#### 2. Performance Benchmarking Command (+97 lines in \_\_init\_\_.py)
 
 **New `bench` Command**:
 
@@ -52,10 +52,10 @@
 **Output Format**:
 
 ```
-Method                     Time (s)  Speedup  Pkgs/sec
-Sequential                  5.23     1.00×     1.9
-Parallel (10 workers)       0.52    10.06×    19.2
-Parallel (20 workers)       0.48    10.90×    20.8
+Method                  Time (s)   Speedup   Pkgs/sec
+Sequential                  5.23     1.00×        1.9
+Parallel (10 workers)       0.52    10.06×       19.2
+Parallel (20 workers)       0.48    10.90×       20.8
 ```
 
 #### 3. Configuration Enhancements (pyproject.toml)
@@ -163,10 +163,10 @@ exclude_lines = [
 ### Test Coverage Achievement
 
 | Metric | v0.7.0 | v0.8.0 | Change |
-|--------|--------|--------|--------|
+| -------------------- | ------- | ---------- | -------------- |
 | **Total Tests** | **151** | **182** | **+20%** |
 | **Overall Coverage** | **85%** | **85.23%** | **Maintained** |
-| **__init__.py** | **75%** | **86.67%** | **+15.6%** |
+| **\_\_init\_\_.py** | **75%** | **86.67%** | **+15.6%** |
 | npm.py | 98% | 97.30% | -0.7% |
 | core.py | 98% | 96.97% | -1% |
 | display.py | 100% | 100% | - |
@@ -178,7 +178,7 @@ exclude_lines = [
 
 **Coverage Analysis**:
 
-- Core command coverage increased significantly (__init__.py +15.6%)
+- Core command coverage increased significantly (\_\_init\_\_.py +15.6%)
 - New features added without compromising overall coverage (85.23%)
 - Slight decreases in some modules due to new untested edge cases
 - All critical paths remain well-covered (95%+)
@@ -292,7 +292,7 @@ All improvements from the roadmap are now implemented and tested:
 
 ### Testing Improvements
 
-- __main__.py coverage: 0% → 80%
+- \_\_main\_\_.py coverage: 0% → 80%
 - logger.py coverage: 62% → 85%
 - Mutation testing for test quality
 - Property-based testing with Hypothesis

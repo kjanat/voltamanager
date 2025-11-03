@@ -6,17 +6,18 @@ from unittest.mock import patch
 import pytest
 
 from voltamanager.display import (
-    display_table,
+    display_dry_run_report,
     display_json,
     display_statistics,
-    display_dry_run_report,
+    display_table,
 )
 
 
 class TestDisplayTable:
     """Test display_table function."""
 
-    def test_display_table_basic(self):
+    @staticmethod
+    def test_display_table_basic():
         """Test basic table display."""
         names = ["pkg1", "pkg2"]
         installed = ["1.0.0", "2.0.0"]
@@ -26,11 +27,13 @@ class TestDisplayTable:
         # Should not raise any exceptions
         display_table(names, installed, latest, states)
 
-    def test_display_table_empty(self):
+    @staticmethod
+    def test_display_table_empty():
         """Test display_table with empty lists."""
         display_table([], [], [], [])
 
-    def test_display_table_outdated_only(self):
+    @staticmethod
+    def test_display_table_outdated_only():
         """Test display_table with outdated_only filter."""
         names = ["pkg1", "pkg2", "pkg3"]
         installed = ["1.0.0", "2.0.0", "3.0.0"]
@@ -40,7 +43,8 @@ class TestDisplayTable:
         # Should not raise any exceptions
         display_table(names, installed, latest, states, outdated_only=True)
 
-    def test_display_table_project_packages(self):
+    @staticmethod
+    def test_display_table_project_packages():
         """Test display_table with project-pinned packages."""
         names = ["pkg1", "pkg2"]
         installed = ["project", "1.0.0"]
@@ -49,7 +53,8 @@ class TestDisplayTable:
 
         display_table(names, installed, latest, states)
 
-    def test_display_table_unknown_state(self):
+    @staticmethod
+    def test_display_table_unknown_state():
         """Test display_table with UNKNOWN state."""
         names = ["pkg1"]
         installed = ["1.0.0"]
@@ -62,7 +67,8 @@ class TestDisplayTable:
         except Exception as e:
             pytest.fail(f"display_table raised unexpected exception: {e}")
 
-    def test_display_table_major_update_warning(self):
+    @staticmethod
+    def test_display_table_major_update_warning():
         """Test display_table shows warning for major updates."""
         names = ["pkg1"]
         installed = ["1.0.0"]
@@ -71,7 +77,8 @@ class TestDisplayTable:
 
         display_table(names, installed, latest, states)
 
-    def test_display_table_scoped_packages(self):
+    @staticmethod
+    def test_display_table_scoped_packages():
         """Test display_table with scoped package names."""
         names = ["@vue/cli", "@angular/core"]
         installed = ["5.0.0", "14.0.0"]
@@ -156,26 +163,31 @@ class TestDisplayJson:
 class TestDisplayStatistics:
     """Test display_statistics function."""
 
-    def test_display_statistics_basic(self):
+    @staticmethod
+    def test_display_statistics_basic():
         """Test statistics display."""
         states = ["up-to-date", "OUTDATED", "up-to-date", "PROJECT", "UNKNOWN"]
         display_statistics(states)
 
-    def test_display_statistics_empty(self):
+    @staticmethod
+    def test_display_statistics_empty():
         """Test statistics with empty state list."""
         display_statistics([])
 
-    def test_display_statistics_all_up_to_date(self):
+    @staticmethod
+    def test_display_statistics_all_up_to_date():
         """Test statistics when all packages are up-to-date."""
         states = ["up-to-date", "up-to-date", "up-to-date"]
         display_statistics(states)
 
-    def test_display_statistics_all_outdated(self):
+    @staticmethod
+    def test_display_statistics_all_outdated():
         """Test statistics when all packages are outdated."""
         states = ["OUTDATED", "OUTDATED", "OUTDATED"]
         display_statistics(states)
 
-    def test_display_statistics_mixed(self):
+    @staticmethod
+    def test_display_statistics_mixed():
         """Test statistics with mixed states."""
         states = ["up-to-date", "OUTDATED", "PROJECT", "UNKNOWN"] * 5
         display_statistics(states)
@@ -184,7 +196,8 @@ class TestDisplayStatistics:
 class TestDisplayDryRunReport:
     """Test display_dry_run_report function."""
 
-    def test_display_dry_run_report_basic(self):
+    @staticmethod
+    def test_display_dry_run_report_basic():
         """Test dry run report display."""
         to_install = ["pkg1@latest", "pkg2@latest"]
         names = ["pkg1", "pkg2"]
@@ -193,11 +206,13 @@ class TestDisplayDryRunReport:
 
         display_dry_run_report(to_install, names, installed, latest)
 
-    def test_display_dry_run_report_empty(self):
+    @staticmethod
+    def test_display_dry_run_report_empty():
         """Test dry run report with no packages to install."""
         display_dry_run_report([], [], [], [])
 
-    def test_display_dry_run_report_scoped_packages(self):
+    @staticmethod
+    def test_display_dry_run_report_scoped_packages():
         """Test dry run report with scoped package names."""
         to_install = ["@vue/cli@latest", "@angular/core@latest"]
         names = ["@vue/cli", "@angular/core"]
@@ -206,7 +221,8 @@ class TestDisplayDryRunReport:
 
         display_dry_run_report(to_install, names, installed, latest)
 
-    def test_display_dry_run_report_single_package(self):
+    @staticmethod
+    def test_display_dry_run_report_single_package():
         """Test dry run report with single package."""
         to_install = ["pkg1@latest"]
         names = ["pkg1", "pkg2"]
@@ -215,7 +231,8 @@ class TestDisplayDryRunReport:
 
         display_dry_run_report(to_install, names, installed, latest)
 
-    def test_display_dry_run_report_many_packages(self):
+    @staticmethod
+    def test_display_dry_run_report_many_packages():
         """Test dry run report with many packages."""
         to_install = [f"pkg{i}@latest" for i in range(20)]
         names = [f"pkg{i}" for i in range(20)]
@@ -224,7 +241,8 @@ class TestDisplayDryRunReport:
 
         display_dry_run_report(to_install, names, installed, latest)
 
-    def test_display_dry_run_report_package_not_found(self):
+    @staticmethod
+    def test_display_dry_run_report_package_not_found():
         """Test dry run report when package not found in names list."""
         to_install = ["missing-pkg@latest"]
         names = ["pkg1", "pkg2"]
@@ -238,7 +256,8 @@ class TestDisplayDryRunReport:
 class TestDisplayIntegration:
     """Integration tests for display functions."""
 
-    def test_full_workflow_check_only(self):
+    @staticmethod
+    def test_full_workflow_check_only():
         """Test full display workflow for check-only mode."""
         names = ["pkg1", "pkg2", "pkg3"]
         installed = ["1.0.0", "2.0.0", "3.0.0"]
@@ -250,7 +269,8 @@ class TestDisplayIntegration:
         display_statistics(states)
         display_json(names, installed, latest, states)
 
-    def test_full_workflow_with_updates(self):
+    @staticmethod
+    def test_full_workflow_with_updates():
         """Test full display workflow for update mode."""
         names = ["pkg1", "pkg2"]
         installed = ["1.0.0", "2.0.0"]
@@ -263,7 +283,8 @@ class TestDisplayIntegration:
         display_statistics(states)
         display_dry_run_report(to_install, names, installed, latest)
 
-    def test_full_workflow_outdated_only(self):
+    @staticmethod
+    def test_full_workflow_outdated_only():
         """Test full display workflow with outdated-only filter."""
         names = ["pkg1", "pkg2", "pkg3", "pkg4"]
         installed = ["1.0.0", "2.0.0", "3.0.0", "project"]

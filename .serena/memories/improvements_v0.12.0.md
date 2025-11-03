@@ -91,7 +91,7 @@
 **Test Coverage**: 86.57% overall (+0.73% from v0.11.0)
 
 | Module | Coverage |
-|--------|----------|
+| --------------- | -------- |
 | cache.py | 100.00% |
 | logger.py | 100.00% |
 | npm.py | 97.30% |
@@ -101,7 +101,7 @@
 | display.py | 95.24% |
 | utils.py | 94.17% |
 | operations.py | 90.38% |
-| __init__.py | 66.17% |
+| \_\_init\_\_.py | 66.17% |
 
 **Code Quality**:
 

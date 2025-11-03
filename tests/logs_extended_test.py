@@ -38,7 +38,7 @@ def sample_log_file(tmp_path):
 2024-01-01 10:17:00 - INFO - Cache miss for package vue
 2024-01-01 10:18:00 - WARNING - Slow network detected
 2024-01-01 10:19:00 - INFO - Application shutdown"""
-    log_file.write_text(log_content)
+    log_file.write_text(log_content, encoding="utf-8")
     return log_file
 
 
@@ -156,7 +156,7 @@ class TestLogsClearOption:
     def test_clear_with_confirmation(self, runner, tmp_path):
         """Test clear with user confirmation."""
         log_file = tmp_path / "test.log"
-        log_file.write_text("Some log content")
+        log_file.write_text("Some log content", encoding="utf-8")
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--clear"], input="y\n")
@@ -167,7 +167,7 @@ class TestLogsClearOption:
     def test_clear_cancelled(self, runner, tmp_path):
         """Test clear cancelled by user."""
         log_file = tmp_path / "test.log"
-        log_file.write_text("Some log content")
+        log_file.write_text("Some log content", encoding="utf-8")
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--clear"], input="n\n")
@@ -187,7 +187,7 @@ class TestLogsClearOption:
     def test_clear_confirmation_prompt(self, runner, tmp_path):
         """Test that clear shows confirmation prompt."""
         log_file = tmp_path / "test.log"
-        log_file.write_text("Some log content")
+        log_file.write_text("Some log content", encoding="utf-8")
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--clear"], input="n\n")
@@ -204,7 +204,8 @@ class TestLogsColorCoding:
             "2024-01-01 - INFO - Info message\n"
             "2024-01-01 - ERROR - Error message\n"
             "2024-01-01 - WARNING - Warning message\n"
-            "2024-01-01 - DEBUG - Debug message\n"
+            "2024-01-01 - DEBUG - Debug message\n",
+            encoding="utf-8",
         )
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
@@ -219,7 +220,7 @@ class TestLogsColorCoding:
     def test_color_coding_error_distinct(self, runner, tmp_path):
         """Test ERROR messages have distinct formatting."""
         log_file = tmp_path / "test.log"
-        log_file.write_text("2024-01-01 - ERROR - Critical failure\n")
+        log_file.write_text("2024-01-01 - ERROR - Critical failure\n", encoding="utf-8")
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs"])
@@ -260,7 +261,7 @@ class TestLogsEdgeCases:
     def test_empty_log_file(self, runner, tmp_path):
         """Test with empty log file."""
         log_file = tmp_path / "empty.log"
-        log_file.write_text("")
+        log_file.write_text("", encoding="utf-8")
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs"])
@@ -269,7 +270,7 @@ class TestLogsEdgeCases:
     def test_single_line_log(self, runner, tmp_path):
         """Test with single line log file."""
         log_file = tmp_path / "single.log"
-        log_file.write_text("2024-01-01 - INFO - Single entry")
+        log_file.write_text("2024-01-01 - INFO - Single entry", encoding="utf-8")
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs", "--tail", "10"])
@@ -280,7 +281,7 @@ class TestLogsEdgeCases:
         """Test with very long log lines."""
         log_file = tmp_path / "long.log"
         long_line = "2024-01-01 - INFO - " + "x" * 1000
-        log_file.write_text(long_line)
+        log_file.write_text(long_line, encoding="utf-8")
 
         with patch("voltamanager.logger.LOG_FILE", log_file):
             result = runner.invoke(app, ["logs"])

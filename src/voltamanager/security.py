@@ -1,10 +1,10 @@
 """Security vulnerability checking via npm audit."""
 
-import subprocess
 import json
-from pathlib import Path
+import subprocess
 from dataclasses import dataclass
-from typing import Any
+from pathlib import Path
+from typing import Any, cast
 
 from rich.console import Console
 from rich.table import Table
@@ -33,6 +33,7 @@ def run_npm_audit(safe_dir: Path, packages: list[str]) -> dict[str, Any] | None:
 
     Returns:
         Dictionary containing audit results, or None if audit fails
+
     """
     if not packages:
         return None
@@ -45,7 +46,7 @@ def run_npm_audit(safe_dir: Path, packages: list[str]) -> dict[str, Any] | None:
             "version": "1.0.0",
             "dependencies": {pkg: "latest" for pkg in packages},
         }
-        package_json.write_text(json.dumps(package_data, indent=2))
+        package_json.write_text(json.dumps(package_data, indent=2), encoding="utf-8")
 
         # Run npm install to populate node_modules
         subprocess.run(
@@ -59,6 +60,7 @@ def run_npm_audit(safe_dir: Path, packages: list[str]) -> dict[str, Any] | None:
         # Run npm audit
         result = subprocess.run(
             ["npm", "audit", "--json"],
+            check=False,
             cwd=safe_dir,
             capture_output=True,
             text=True,
@@ -67,7 +69,7 @@ def run_npm_audit(safe_dir: Path, packages: list[str]) -> dict[str, Any] | None:
 
         # npm audit returns non-zero if vulnerabilities found, but that's expected
         if result.stdout:
-            return json.loads(result.stdout)
+            return cast(dict[str, Any], json.loads(result.stdout))
 
         return None
 
@@ -87,6 +89,7 @@ def parse_audit_results(audit_data: dict) -> list[Vulnerability]:
 
     Returns:
         List of Vulnerability objects
+
     """
     vulnerabilities = []
 
@@ -130,6 +133,7 @@ def get_severity_color(severity: str) -> str:
 
     Returns:
         Rich color string
+
     """
     severity_lower = severity.lower()
     if severity_lower == "critical":
@@ -144,12 +148,15 @@ def get_severity_color(severity: str) -> str:
         return "dim"
 
 
-def display_audit_results(audit_data: dict, verbose: bool = False) -> None:
+def display_audit_results(  # noqa: C901
+    audit_data: dict, verbose: bool = False
+) -> None:
     """Display audit results in formatted tables.
 
     Args:
         audit_data: npm audit JSON data
         verbose: Show detailed vulnerability information
+
     """
     metadata = audit_data.get("metadata", {})
     vulnerabilities_count = metadata.get("vulnerabilities", {})
@@ -228,6 +235,7 @@ def check_package_vulnerabilities(
 
     Returns:
         Tuple of (has_critical_vulns, audit_data)
+
     """
     console.print("[cyan]Running security audit...[/cyan]")
 

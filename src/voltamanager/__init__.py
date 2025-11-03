@@ -1,21 +1,32 @@
 """Volta Manager - Check and upgrade Volta-managed global packages."""
 
+import json
+import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 import typer
+from rich.console import Console
+from rich.table import Table
 
+from .cache import clear_cache
+from .config import Config, create_default_config
 from .core import (
-    check_dependencies,
-    get_installed_packages,
-    parse_package,
     HealthCheckResult as HealthCheckResult,
 )
-from .operations import fast_install, check_and_update
-from .config import Config, create_default_config
-from .cache import clear_cache
-
-from rich.console import Console
+from .core import (
+    check_dependencies,
+    check_volta_health,
+    display_health_check,
+    get_installed_packages,
+    parse_package,
+)
+from .logger import LOG_FILE, get_log_stats
+from .npm import get_latest_version, get_latest_versions_parallel
+from .operations import check_and_update, fast_install
+from .security import check_package_vulnerabilities
+from .utils import get_changelog_url, get_major_updates
 
 app = typer.Typer(
     help="Check and upgrade Volta-managed global packages",
@@ -26,7 +37,7 @@ console = Console()
 
 
 @app.callback(invoke_without_command=True)
-def main(
+def main(  # noqa: PLR0913, PLR0917
     ctx: typer.Context,
     force: bool = typer.Option(
         False, "--force", "-f", help="Skip version check and force update all packages"
@@ -73,8 +84,8 @@ def main(
         voltamanager --json             # Output as JSON
         voltamanager -u -i              # Interactively select updates
         voltamanager --no-cache         # Force fresh npm queries
-    """
 
+    """
     # If a subcommand was invoked, skip main logic
     if ctx.invoked_subcommand is not None:
         return
@@ -85,10 +96,6 @@ def main(
     # Determine behavior flags
     do_check = not force
     do_update = force or update
-
-    # Quiet mode suppresses table unless updating
-    if quiet and not do_update:
-        do_check = False
 
     # Check dependencies
     if not check_dependencies():
@@ -147,7 +154,12 @@ def main(
 
 @app.command(name="config")
 def config_command() -> None:
-    """Create default configuration file."""
+    """Create default configuration file.
+
+    Raises:
+        Exit: When operation fails or user cancels.
+
+    """
     create_default_config()
     config_file = Path.home() / ".config" / "voltamanager" / "config.toml"
     console.print(f"[green]Created default config at:[/green] {config_file}")
@@ -155,13 +167,18 @@ def config_command() -> None:
 
 @app.command(name="clear-cache")
 def clear_cache_command() -> None:
-    """Clear the npm version cache."""
+    """Clear the npm version cache.
+
+    Raises:
+        Exit: When operation fails or user cancels.
+
+    """
     clear_cache()
     console.print("[green]✓ Cache cleared[/green]")
 
 
 @app.command(name="logs")
-def logs_command(
+def logs_command(  # noqa: C901, PLR0912
     stats: bool = typer.Option(False, "--stats", help="Show log statistics"),
     tail: int = typer.Option(
         20, "--tail", "-n", help="Number of log lines to show (default: 20)"
@@ -172,8 +189,6 @@ def logs_command(
     ),
 ) -> None:
     """View voltamanager logs and statistics."""
-    from .logger import LOG_FILE, get_log_stats
-
     if clear:
         confirm = typer.confirm(
             "Are you sure you want to clear all log files?", default=False
@@ -206,7 +221,7 @@ def logs_command(
 
         console.print(f"[bold]Log file:[/bold] {LOG_FILE}")
 
-        with open(LOG_FILE) as f:
+        with open(LOG_FILE, encoding="utf-8") as f:
             lines = f.readlines()
 
         # Apply search filter if provided
@@ -247,12 +262,8 @@ def rollback(
         voltamanager rollback              # Rollback all packages
         voltamanager rollback typescript   # Rollback only typescript
         voltamanager rollback eslint prettier --force  # Rollback multiple without confirmation
-    """
-    import json
-    import subprocess
-    from pathlib import Path
-    from rich.table import Table
 
+    """
     snapshot_file = Path.home() / ".voltamanager" / "last_snapshot.json"
     if not snapshot_file.exists():
         console.print("[red]✗ No snapshot found - cannot rollback[/red]")
@@ -261,7 +272,7 @@ def rollback(
         )
         raise typer.Exit(1)
 
-    snapshot = json.loads(snapshot_file.read_text())
+    snapshot = json.loads(snapshot_file.read_text(encoding="utf-8"))
 
     # Filter packages if specific ones requested
     if packages:
@@ -317,7 +328,7 @@ def rollback(
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             subprocess.run(
-                ["volta", "install"] + packages_to_install, cwd=Path(tmpdir), check=True
+                ["volta", "install", *packages_to_install], cwd=Path(tmpdir), check=True
             )
         console.print("[green]✓ Rollback complete[/green]")
         console.print(
@@ -338,10 +349,6 @@ def benchmark(
     ),
 ) -> None:
     """Benchmark npm registry query performance."""
-    import time
-    from rich.table import Table
-    from .npm import get_latest_version, get_latest_versions_parallel
-
     console.print("[bold]Running performance benchmark...[/bold]\n")
 
     # Test packages (common popular packages)
@@ -406,19 +413,19 @@ def benchmark(
     table.add_row(
         "Sequential",
         f"{sequential_time:.2f}",
-        "1.00×",
+        "1.00x",
         f"{packages / sequential_time:.1f}",
     )
     table.add_row(
         "Parallel (10 workers)",
         f"{parallel_time:.2f}",
-        f"{baseline / parallel_time:.2f}×",
+        f"{baseline / parallel_time:.2f}x",
         f"{packages / parallel_time:.1f}",
     )
     table.add_row(
         "Parallel (20 workers)",
         f"{parallel_high_time:.2f}",
-        f"{baseline / parallel_high_time:.2f}×",
+        f"{baseline / parallel_high_time:.2f}x",
         f"{packages / parallel_high_time:.1f}",
     )
 
@@ -439,9 +446,12 @@ def health_check() -> None:
 
     Examples:
         voltamanager health    # Run health check
-    """
-    from .core import check_volta_health, display_health_check
 
+
+    Raises:
+        Exit: When operation fails or user cancels.
+
+    """
     results = check_volta_health()
     display_health_check(results)
 
@@ -473,10 +483,8 @@ def security_audit(
         voltamanager audit              # Basic audit
         voltamanager audit -v           # Detailed vulnerability info
         voltamanager audit --critical-only  # Only fail on critical vulns
-    """
-    from .security import check_package_vulnerabilities
-    from .core import get_installed_packages, parse_package, check_dependencies
 
+    """
     # Check dependencies first
     if not check_dependencies():
         raise typer.Exit(127)
@@ -534,9 +542,8 @@ def pin_package(
     Examples:
         voltamanager pin typescript eslint    # Pin typescript and eslint
         voltamanager pin --unpin typescript   # Unpin typescript
-    """
-    from .config import Config
 
+    """
     config = Config()
 
     if unpin:
@@ -581,7 +588,7 @@ def pin_package(
 
 
 @app.command(name="info")
-def package_info(
+def package_info(  # noqa: C901, PLR0912
     package: str = typer.Argument(..., help="Package name to get information about"),
 ) -> None:
     """Show detailed information about a package.
@@ -589,11 +596,8 @@ def package_info(
     Examples:
         voltamanager info typescript
         voltamanager info @vue/cli
-    """
-    import subprocess
-    import json
-    from pathlib import Path
 
+    """
     console.print(f"[cyan]Fetching information for {package}...[/cyan]\n")
 
     try:
@@ -677,7 +681,7 @@ def package_info(
 
 
 @app.command(name="breaking-changes")
-def breaking_changes(
+def breaking_changes(  # noqa: C901, PLR0915
     packages: list[str] = typer.Argument(
         None, help="Specific packages to check (empty for all)"
     ),
@@ -690,10 +694,8 @@ def breaking_changes(
     Examples:
         voltamanager breaking-changes              # Check all packages
         voltamanager breaking-changes typescript   # Check specific package
-    """
-    from rich.table import Table
-    from .utils import get_major_updates, get_changelog_url
 
+    """
     # Check dependencies
     if not check_dependencies():
         raise typer.Exit(code=127)
@@ -732,8 +734,6 @@ def breaking_changes(
         console.print(f"[dim]Checking {len(pkg_list)} packages for updates...[/dim]\n")
 
         # Get latest versions
-        from .npm import get_latest_versions_parallel
-
         latest_dict = get_latest_versions_parallel(pkg_list, safe_dir)
 
         # Build lists for analysis

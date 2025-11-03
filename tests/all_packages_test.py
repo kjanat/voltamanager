@@ -1,11 +1,11 @@
 """Tests for --all-packages flag functionality."""
 
-from pathlib import Path
 import tempfile
+from pathlib import Path
 from unittest.mock import patch
 
-from voltamanager.operations import check_and_update
 from voltamanager.config import Config
+from voltamanager.operations import check_and_update
 
 
 def test_all_packages_flag_shows_excluded():

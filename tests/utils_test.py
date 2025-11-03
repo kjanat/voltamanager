@@ -2,56 +2,63 @@
 
 import json
 
-
 from voltamanager.utils import (
-    is_major_update,
+    check_local_volta_config,
     get_major_updates,
     get_minor_updates,
-    check_local_volta_config,
+    is_major_update,
 )
 
 
 class TestVersionComparison:
     """Tests for version comparison utilities."""
 
-    def test_is_major_update_true(self) -> None:
+    @staticmethod
+    def test_is_major_update_true() -> None:
         """Test detection of major version updates."""
         assert is_major_update("1.0.0", "2.0.0") is True
         assert is_major_update("2.5.3", "3.0.0") is True
         assert is_major_update("0.9.9", "1.0.0") is True
 
-    def test_is_major_update_false(self) -> None:
+    @staticmethod
+    def test_is_major_update_false() -> None:
         """Test non-major version updates."""
         assert is_major_update("1.0.0", "1.1.0") is False
         assert is_major_update("1.0.0", "1.0.1") is False
         assert is_major_update("2.5.3", "2.6.0") is False
 
-    def test_is_major_update_same_version(self) -> None:
+    @staticmethod
+    def test_is_major_update_same_version() -> None:
         """Test same version comparison."""
         assert is_major_update("1.0.0", "1.0.0") is False
         assert is_major_update("2.5.3", "2.5.3") is False
 
-    def test_is_major_update_downgrade(self) -> None:
+    @staticmethod
+    def test_is_major_update_downgrade() -> None:
         """Test downgrade detection (higher to lower major version)."""
         assert is_major_update("2.0.0", "1.0.0") is False
 
-    def test_is_major_update_invalid_versions(self) -> None:
+    @staticmethod
+    def test_is_major_update_invalid_versions() -> None:
         """Test handling of invalid version strings."""
         assert is_major_update("invalid", "1.0.0") is False
         assert is_major_update("1.0.0", "invalid") is False
         assert is_major_update("not.a.version", "also.not.valid") is False
 
-    def test_is_major_update_prerelease(self) -> None:
+    @staticmethod
+    def test_is_major_update_prerelease() -> None:
         """Test handling of prerelease versions."""
         assert is_major_update("1.0.0", "2.0.0-beta.1") is True
         assert is_major_update("1.0.0-alpha", "1.0.0") is False
 
-    def test_get_major_updates_empty(self) -> None:
+    @staticmethod
+    def test_get_major_updates_empty() -> None:
         """Test with no packages."""
         result = get_major_updates([], [], [], [])
         assert result == []
 
-    def test_get_major_updates_none_outdated(self) -> None:
+    @staticmethod
+    def test_get_major_updates_none_outdated() -> None:
         """Test with all packages up-to-date."""
         names = ["lodash", "axios"]
         installed = ["4.17.21", "1.4.0"]
@@ -61,7 +68,8 @@ class TestVersionComparison:
         result = get_major_updates(names, installed, latest, states)
         assert result == []
 
-    def test_get_major_updates_minor_only(self) -> None:
+    @staticmethod
+    def test_get_major_updates_minor_only() -> None:
         """Test with only minor/patch updates."""
         names = ["lodash", "axios"]
         installed = ["4.17.20", "1.3.0"]
@@ -71,7 +79,8 @@ class TestVersionComparison:
         result = get_major_updates(names, installed, latest, states)
         assert result == []
 
-    def test_get_major_updates_with_major(self) -> None:
+    @staticmethod
+    def test_get_major_updates_with_major() -> None:
         """Test detection of major version updates."""
         names = ["react", "vue", "lodash"]
         installed = ["17.0.2", "2.6.14", "4.17.20"]
@@ -85,7 +94,8 @@ class TestVersionComparison:
         assert ("vue", "2.6.14", "3.0.0") in result
         assert ("lodash", "4.17.20", "4.17.21") not in result
 
-    def test_get_major_updates_with_unknown(self) -> None:
+    @staticmethod
+    def test_get_major_updates_with_unknown() -> None:
         """Test handling of unknown versions."""
         names = ["react", "unknown-pkg"]
         installed = ["17.0.2", "1.0.0"]
@@ -97,7 +107,8 @@ class TestVersionComparison:
         assert len(result) == 1
         assert ("react", "17.0.2", "18.0.0") in result
 
-    def test_get_major_updates_with_project(self) -> None:
+    @staticmethod
+    def test_get_major_updates_with_project() -> None:
         """Test handling of project-pinned packages."""
         names = ["react", "local-package"]
         installed = ["17.0.2", "project"]
@@ -113,12 +124,14 @@ class TestVersionComparison:
 class TestMinorUpdates:
     """Tests for get_minor_updates function."""
 
-    def test_get_minor_updates_empty(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_empty() -> None:
         """Test with empty input."""
         result = get_minor_updates([], [], [], [])
         assert result == []
 
-    def test_get_minor_updates_none_outdated(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_none_outdated() -> None:
         """Test with all packages up-to-date."""
         names = ["lodash", "axios"]
         installed = ["4.17.21", "1.4.0"]
@@ -128,7 +141,8 @@ class TestMinorUpdates:
         result = get_minor_updates(names, installed, latest, states)
         assert result == []
 
-    def test_get_minor_updates_major_only(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_major_only() -> None:
         """Test with only major updates (should exclude them)."""
         names = ["react", "vue"]
         installed = ["17.0.2", "2.6.14"]
@@ -138,7 +152,8 @@ class TestMinorUpdates:
         result = get_minor_updates(names, installed, latest, states)
         assert result == []
 
-    def test_get_minor_updates_with_minor(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_with_minor() -> None:
         """Test detection of minor version updates."""
         names = ["lodash", "axios", "react"]
         installed = ["4.17.20", "1.3.0", "17.0.2"]
@@ -153,7 +168,8 @@ class TestMinorUpdates:
         assert ("react", "17.0.2", "17.1.0") in result
         assert ("lodash", "4.17.20", "4.17.21") not in result
 
-    def test_get_minor_updates_patch_only(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_patch_only() -> None:
         """Test that patch updates are excluded."""
         names = ["lodash"]
         installed = ["4.17.20"]
@@ -163,7 +179,8 @@ class TestMinorUpdates:
         result = get_minor_updates(names, installed, latest, states)
         assert result == []
 
-    def test_get_minor_updates_with_unknown(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_with_unknown() -> None:
         """Test handling of unknown versions."""
         names = ["axios", "unknown-pkg"]
         installed = ["1.3.0", "1.0.0"]
@@ -175,7 +192,8 @@ class TestMinorUpdates:
         assert len(result) == 1
         assert ("axios", "1.3.0", "1.4.0") in result
 
-    def test_get_minor_updates_invalid_versions(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_invalid_versions() -> None:
         """Test handling of invalid version strings."""
         names = ["pkg1", "pkg2"]
         installed = ["invalid", "1.2.0"]
@@ -186,7 +204,8 @@ class TestMinorUpdates:
         # Both should be excluded due to invalid versions
         assert result == []
 
-    def test_get_minor_updates_mixed_scenarios(self) -> None:
+    @staticmethod
+    def test_get_minor_updates_mixed_scenarios() -> None:
         """Test mixed update scenarios."""
         names = ["major-pkg", "minor-pkg", "patch-pkg", "current-pkg"]
         installed = ["1.0.0", "2.5.0", "3.4.10", "4.0.0"]
@@ -203,31 +222,36 @@ class TestMinorUpdates:
 class TestVoltaConfigCheck:
     """Tests for local volta configuration checking."""
 
-    def test_no_package_json(self, tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def test_no_package_json(self, tmp_path, monkeypatch) -> None:
         """Test when no package.json exists."""
         monkeypatch.chdir(tmp_path)
         result = check_local_volta_config()
         assert result is False
 
-    def test_package_json_without_volta(self, tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def test_package_json_without_volta(self, tmp_path, monkeypatch) -> None:
         """Test package.json without volta configuration."""
         monkeypatch.chdir(tmp_path)
         package_json = tmp_path / "package.json"
-        package_json.write_text(json.dumps({"name": "test-app", "version": "1.0.0"}))
+        package_json.write_text(
+            json.dumps({"name": "test-app", "version": "1.0.0"}), encoding="utf-8"
+        )
 
         result = check_local_volta_config()
         assert result is False
 
-    def test_package_json_with_volta(self, tmp_path, monkeypatch, capsys) -> None:  # type: ignore[no-untyped-def]
+    def test_package_json_with_volta(self, tmp_path, monkeypatch, capsys) -> None:
         """Test package.json with volta configuration."""
         monkeypatch.chdir(tmp_path)
         package_json = tmp_path / "package.json"
         package_json.write_text(
-            json.dumps({
-                "name": "test-app",
-                "version": "1.0.0",
-                "volta": {"node": "18.0.0", "npm": "9.0.0"},
-            })
+            json.dumps(
+                {
+                    "name": "test-app",
+                    "version": "1.0.0",
+                    "volta": {"node": "18.0.0", "npm": "9.0.0"},
+                },
+                encoding="utf-8",
+            )
         )
 
         result = check_local_volta_config()
@@ -236,21 +260,24 @@ class TestVoltaConfigCheck:
         captured = capsys.readouterr()
         assert "Local volta config detected" in captured.out
 
-    def test_package_json_with_volta_verbose(  # type: ignore[no-untyped-def]
+    def test_package_json_with_volta_verbose(
         self, tmp_path, monkeypatch, capsys
     ) -> None:
         """Test verbose output with volta configuration."""
         monkeypatch.chdir(tmp_path)
         package_json = tmp_path / "package.json"
         package_json.write_text(
-            json.dumps({
-                "name": "test-app",
-                "volta": {
-                    "node": "18.0.0",
-                    "npm": "9.0.0",
-                    "yarn": "1.22.0",
+            json.dumps(
+                {
+                    "name": "test-app",
+                    "volta": {
+                        "node": "18.0.0",
+                        "npm": "9.0.0",
+                        "yarn": "1.22.0",
+                    },
                 },
-            })
+                encoding="utf-8",
+            )
         )
 
         result = check_local_volta_config(verbose=True)
@@ -261,11 +288,11 @@ class TestVoltaConfigCheck:
         assert "npm: 9.0.0" in captured.out
         assert "Yarn: 1.22.0" in captured.out
 
-    def test_invalid_package_json(self, tmp_path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    def test_invalid_package_json(self, tmp_path, monkeypatch) -> None:
         """Test handling of invalid JSON in package.json."""
         monkeypatch.chdir(tmp_path)
         package_json = tmp_path / "package.json"
-        package_json.write_text("{invalid json}")
+        package_json.write_text("{invalid json}", encoding="utf-8")
 
         result = check_local_volta_config()
         assert result is False

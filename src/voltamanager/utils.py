@@ -3,8 +3,8 @@
 import json
 import shutil
 from pathlib import Path
-from packaging import version as pkg_version
 
+from packaging import version as pkg_version
 from rich.console import Console
 
 console = Console()
@@ -19,6 +19,7 @@ def is_major_update(current: str, latest: str) -> bool:
 
     Returns:
         True if latest has a higher major version than current
+
     """
     try:
         current_ver = pkg_version.parse(current)
@@ -43,6 +44,7 @@ def is_minor_update(current: str, latest: str) -> bool:
 
     Returns:
         True if latest has a higher minor version (same major) than current
+
     """
     try:
         current_ver = pkg_version.parse(current)
@@ -78,6 +80,7 @@ def get_major_updates(
 
     Returns:
         List of (name, current_version, latest_version) tuples for major updates
+
     """
     major_updates = []
 
@@ -99,6 +102,7 @@ def get_changelog_url(package_name: str) -> str:
 
     Returns:
         URL to the package's changelog or npm page
+
     """
     # Most packages have changelogs at these common locations
     return f"https://www.npmjs.com/package/{package_name}?activeTab=versions"
@@ -117,10 +121,11 @@ def get_minor_updates(
 
     Returns:
         List of (name, current_version, latest_version) tuples for minor updates
+
     """
     minor_updates = []
 
-    for i, state in enumerate(states):
+    for i, state in enumerate(states):  # noqa: PLR1702
         if state == "OUTDATED":
             current = installed[i]
             lat = latest[i]
@@ -158,6 +163,7 @@ def check_local_volta_config(verbose: bool = False) -> bool:
 
     Returns:
         True if local volta config detected, False otherwise
+
     """
     package_json = Path("package.json")
 
@@ -165,7 +171,7 @@ def check_local_volta_config(verbose: bool = False) -> bool:
         return False
 
     try:
-        with open(package_json) as f:
+        with open(package_json, encoding="utf-8") as f:
             data = json.load(f)
 
         if "volta" in data:
@@ -201,6 +207,7 @@ def check_disk_space(min_mb: int = 500) -> tuple[bool, int]:
 
     Returns:
         Tuple of (sufficient_space, available_mb)
+
     """
     try:
         stat = shutil.disk_usage(Path.home())
@@ -219,6 +226,7 @@ def estimate_update_size(package_count: int) -> int:
 
     Returns:
         Estimated size in MB (conservative estimate)
+
     """
     # Conservative estimate: 50MB per package on average
     # Some packages like typescript, webpack are larger

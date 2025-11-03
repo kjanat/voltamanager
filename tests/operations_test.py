@@ -5,14 +5,13 @@ import subprocess
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-
+from voltamanager.config import Config
 from voltamanager.operations import (
+    check_and_update,
+    fast_install,
     log_update,
     save_snapshot,
-    fast_install,
-    check_and_update,
 )
-from voltamanager.config import Config
 
 
 class TestLogUpdate:
@@ -30,7 +29,7 @@ class TestLogUpdate:
         log_update(packages)
 
         assert history_file.exists()
-        content = history_file.read_text()
+        content = history_file.read_text(encoding="utf-8")
         assert "Updated 2 packages" in content
         assert "package1@1.0.0" in content
 
@@ -39,14 +38,14 @@ class TestLogUpdate:
         history_dir = tmp_path / ".voltamanager"
         history_dir.mkdir(parents=True)
         history_file = history_dir / "history.log"
-        history_file.write_text("Previous entry\n")
+        history_file.write_text("Previous entry\n", encoding="utf-8")
 
         monkeypatch.setattr("voltamanager.operations.HISTORY_DIR", history_dir)
         monkeypatch.setattr("voltamanager.operations.HISTORY_FILE", history_file)
 
         log_update(["new-package@1.0.0"])
 
-        content = history_file.read_text()
+        content = history_file.read_text(encoding="utf-8")
         assert "Previous entry" in content
         assert "Updated 1 packages" in content
 
@@ -66,7 +65,7 @@ class TestSaveSnapshot:
         save_snapshot(packages)
 
         assert snapshot_file.exists()
-        data = json.loads(snapshot_file.read_text())
+        data = json.loads(snapshot_file.read_text(encoding="utf-8"))
         assert data == packages
 
     def test_save_snapshot_overwrites_existing(self, tmp_path, monkeypatch):
@@ -74,7 +73,7 @@ class TestSaveSnapshot:
         history_dir = tmp_path / ".voltamanager"
         history_dir.mkdir(parents=True)
         snapshot_file = history_dir / "last_snapshot.json"
-        snapshot_file.write_text('{"old": "1.0.0"}')
+        snapshot_file.write_text('{"old": "1.0.0"}', encoding="utf-8")
 
         monkeypatch.setattr("voltamanager.operations.HISTORY_DIR", history_dir)
         monkeypatch.setattr("voltamanager.operations.SNAPSHOT_FILE", snapshot_file)
@@ -82,7 +81,7 @@ class TestSaveSnapshot:
         new_packages = {"new": "2.0.0"}
         save_snapshot(new_packages)
 
-        data = json.loads(snapshot_file.read_text())
+        data = json.loads(snapshot_file.read_text(encoding="utf-8"))
         assert data == new_packages
         assert "old" not in data
 
@@ -90,7 +89,8 @@ class TestSaveSnapshot:
 class TestFastInstall:
     """Test fast_install function."""
 
-    def test_fast_install_empty_list(self):
+    @staticmethod
+    def test_fast_install_empty_list():
         """Test fast_install with empty package list."""
         result = fast_install([], Path("/tmp"), False)
         assert result == 0

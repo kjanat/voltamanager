@@ -1,9 +1,10 @@
 """Tests for selective rollback functionality."""
 
+import json
+import subprocess
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
-import json
-import tempfile
 
 import pytest
 from typer.testing import CliRunner
@@ -13,6 +14,7 @@ from voltamanager import app
 
 @pytest.fixture
 def runner():
+    """Create CLI runner."""
     return CliRunner()
 
 
@@ -31,7 +33,7 @@ def snapshot_dir(monkeypatch):
             "prettier": "3.0.0",
             "@vue/cli": "5.0.0",
         }
-        snapshot_file.write_text(json.dumps(snapshot_data, indent=2))
+        snapshot_file.write_text(json.dumps(snapshot_data, indent=2), encoding="utf-8")
 
         # Patch SNAPSHOT_FILE path
         with patch("pathlib.Path.home", return_value=Path(tmpdir)):
@@ -41,7 +43,7 @@ def snapshot_dir(monkeypatch):
 @patch("subprocess.run")
 def test_rollback_all_packages(mock_run, runner, snapshot_dir):
     """Test rolling back all packages (original behavior)."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         result = runner.invoke(app, ["rollback", "--force"])
@@ -63,7 +65,7 @@ def test_rollback_all_packages(mock_run, runner, snapshot_dir):
 @patch("subprocess.run")
 def test_rollback_single_package(mock_run, runner, snapshot_dir):
     """Test rolling back a single specified package."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         result = runner.invoke(app, ["rollback", "typescript", "--force"])
@@ -83,7 +85,7 @@ def test_rollback_single_package(mock_run, runner, snapshot_dir):
 @patch("subprocess.run")
 def test_rollback_multiple_packages(mock_run, runner, snapshot_dir):
     """Test rolling back multiple specified packages."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         result = runner.invoke(app, ["rollback", "typescript", "eslint", "--force"])
@@ -102,7 +104,7 @@ def test_rollback_multiple_packages(mock_run, runner, snapshot_dir):
 
 def test_rollback_package_not_in_snapshot(runner, snapshot_dir):
     """Test rolling back a package that's not in the snapshot."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         result = runner.invoke(app, ["rollback", "nonexistent", "--force"])
@@ -113,7 +115,7 @@ def test_rollback_package_not_in_snapshot(runner, snapshot_dir):
 
 def test_rollback_partial_match_warns(runner, snapshot_dir):
     """Test warning when some packages aren't in snapshot."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         with patch("subprocess.run"):
@@ -128,7 +130,7 @@ def test_rollback_partial_match_warns(runner, snapshot_dir):
 @patch("subprocess.run")
 def test_rollback_scoped_package(mock_run, runner, snapshot_dir):
     """Test rolling back a scoped package."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         result = runner.invoke(app, ["rollback", "@vue/cli", "--force"])
@@ -156,9 +158,7 @@ def test_rollback_no_snapshot(runner):
 @patch("subprocess.run")
 def test_rollback_volta_failure(mock_run, runner, snapshot_dir):
     """Test handling of volta install failure during rollback."""
-    import subprocess
-
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     # Simulate subprocess.CalledProcessError
     mock_run.side_effect = subprocess.CalledProcessError(1, "volta")
@@ -172,7 +172,7 @@ def test_rollback_volta_failure(mock_run, runner, snapshot_dir):
 
 def test_rollback_requires_confirmation_without_force(runner, snapshot_dir):
     """Test that rollback requires confirmation when --force is not used."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         # Simulate user declining confirmation
@@ -185,7 +185,7 @@ def test_rollback_requires_confirmation_without_force(runner, snapshot_dir):
 @patch("subprocess.run")
 def test_rollback_with_confirmation(mock_run, runner, snapshot_dir):
     """Test rollback when user confirms."""
-    snapshot_dir, snapshot_file = snapshot_dir
+    snapshot_dir, _snapshot_file = snapshot_dir
 
     with patch("pathlib.Path.home", return_value=snapshot_dir.parent):
         # Simulate user confirming
