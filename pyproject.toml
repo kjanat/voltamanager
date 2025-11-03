@@ -11,7 +11,7 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.13"
+  "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
   "packaging>=24.0",
@@ -20,8 +20,6 @@ dependencies = [
 ]
 
 [project.urls]
-# Homepage = "https://example.com"
-# Documentation = "https://readthedocs.org"
 Changelog = "https://github.com/kjanat/voltamanager/blob/master/CHANGELOG.md"
 Issues = "https://github.com/kjanat/voltamanager/issues"
 Repository = "https://github.com/kjanat/voltamanager.git"
@@ -46,11 +44,6 @@ build-backend = "uv_build"
 [tool.coverage.run]
 source = ["src/voltamanager"]
 branch = true
-# omit = [
-#   "*/tests/*",
-#   "*/__pycache__/*",
-#   "*/.venv/*",
-# ]
 
 [tool.coverage.report]
 precision = 2
