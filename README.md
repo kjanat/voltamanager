@@ -22,8 +22,6 @@ $ voltamanager [OPTIONS] COMMAND [ARGS]...
 * `-v, --verbose`: Verbose output with additional details
 * `-q, --quiet`: Minimal output (suppress tables unless updating)
 * `-a, --all-packages`: Show all packages including excluded ones
-* `--install-completion`: Install completion for the current shell.
-* `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
 * `--help`: Show this message and exit.
 
 **Commands**:

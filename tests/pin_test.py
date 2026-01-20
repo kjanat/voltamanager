@@ -50,10 +50,10 @@ def test_pin_single_package(runner, temp_config_dir) -> None:
     result = runner.invoke(app, ["pin", "typescript"])
 
     assert result.exit_code == 0
-    assert "✓ Pinned 1 package(s): typescript" in result.stdout
+    assert "Pinned 1 package(s): typescript" in result.stdout
     assert "These packages will be excluded from future updates" in result.stdout
     assert "Currently pinned packages:" in result.stdout
-    assert "• typescript" in result.stdout
+    assert "  typescript" in result.stdout
 
     # Verify config file was updated
     config_content = config_file.read_text(encoding="utf-8")
@@ -67,7 +67,7 @@ def test_pin_multiple_packages(runner, temp_config_dir) -> None:
     result = runner.invoke(app, ["pin", "typescript", "eslint", "prettier"])
 
     assert result.exit_code == 0
-    assert "✓ Pinned 3 package(s): typescript, eslint, prettier" in result.stdout
+    assert "Pinned 3 package(s): typescript, eslint, prettier" in result.stdout
 
     # Verify all packages are in config
     config_content = config_file.read_text(encoding="utf-8")
@@ -102,7 +102,7 @@ def test_unpin_package(runner, temp_config_dir) -> None:
     result = runner.invoke(app, ["pin", "--unpin", "typescript"])
 
     assert result.exit_code == 0
-    assert "✓ Unpinned 1 package(s): typescript" in result.stdout
+    assert "Unpinned 1 package(s): typescript" in result.stdout
 
     # Verify config was updated
     config_content = config_file.read_text(encoding="utf-8")
@@ -130,7 +130,7 @@ def test_unpin_multiple_packages(runner, temp_config_dir) -> None:
     result = runner.invoke(app, ["pin", "--unpin", "typescript", "eslint"])
 
     assert result.exit_code == 0
-    assert "✓ Unpinned 2 package(s): typescript, eslint" in result.stdout
+    assert "Unpinned 2 package(s): typescript, eslint" in result.stdout
 
     # Verify only prettier remains
     config_content = config_file.read_text(encoding="utf-8")

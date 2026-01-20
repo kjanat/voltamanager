@@ -15,7 +15,7 @@ class TestBreakingChangesCommand:
     @staticmethod
     def test_no_packages_installed() -> None:
         """Test with no packages installed."""
-        with patch("voltamanager.get_installed_packages", return_value=[]):
+        with patch("voltamanager.cli.get_installed_packages", return_value=[]):
             result = runner.invoke(app, ["breaking-changes"])
 
             assert result.exit_code == 0
@@ -26,11 +26,11 @@ class TestBreakingChangesCommand:
         """Test when all packages are up-to-date or have minor updates only."""
         with (
             patch(
-                "voltamanager.get_installed_packages",
+                "voltamanager.cli.get_installed_packages",
                 return_value=["typescript@5.0.0", "eslint@8.40.0"],
             ),
             patch(
-                "voltamanager.get_latest_versions_parallel",
+                "voltamanager.cli.get_latest_versions_parallel",
                 return_value={"typescript": "5.0.1", "eslint": "8.41.0"},
             ),
         ):
@@ -45,11 +45,11 @@ class TestBreakingChangesCommand:
         """Test when major updates are detected."""
         with (
             patch(
-                "voltamanager.get_installed_packages",
+                "voltamanager.cli.get_installed_packages",
                 return_value=["typescript@4.9.5", "react@17.0.2", "lodash@4.17.20"],
             ),
             patch(
-                "voltamanager.npm.get_latest_versions_parallel",
+                "voltamanager.cli.get_latest_versions_parallel",
                 return_value={
                     "typescript": "5.0.0",
                     "react": "18.2.0",
@@ -72,11 +72,11 @@ class TestBreakingChangesCommand:
         """Test checking a specific package."""
         with (
             patch(
-                "voltamanager.get_installed_packages",
+                "voltamanager.cli.get_installed_packages",
                 return_value=["typescript@4.9.5", "react@17.0.2"],
             ),
             patch(
-                "voltamanager.npm.get_latest_versions_parallel",
+                "voltamanager.cli.get_latest_versions_parallel",
                 return_value={"typescript": "5.0.0"},
             ),
         ):
@@ -90,7 +90,7 @@ class TestBreakingChangesCommand:
     def test_with_specific_package_not_installed() -> None:
         """Test checking a package that isn't installed."""
         with patch(
-            "voltamanager.get_installed_packages", return_value=["eslint@8.40.0"]
+            "voltamanager.cli.get_installed_packages", return_value=["eslint@8.40.0"]
         ):
             result = runner.invoke(app, ["breaking-changes", "typescript"])
 
@@ -102,11 +102,11 @@ class TestBreakingChangesCommand:
         """Test handling of packages with unknown latest versions."""
         with (
             patch(
-                "voltamanager.get_installed_packages",
+                "voltamanager.cli.get_installed_packages",
                 return_value=["typescript@4.9.5", "private-pkg@1.0.0"],
             ),
             patch(
-                "voltamanager.npm.get_latest_versions_parallel",
+                "voltamanager.cli.get_latest_versions_parallel",
                 return_value={"typescript": "5.0.0", "private-pkg": None},
             ),
         ):
@@ -122,11 +122,11 @@ class TestBreakingChangesCommand:
         """Test that project-pinned packages are skipped."""
         with (
             patch(
-                "voltamanager.get_installed_packages",
+                "voltamanager.cli.get_installed_packages",
                 return_value=["typescript@4.9.5", "local-pkg@project"],
             ),
             patch(
-                "voltamanager.npm.get_latest_versions_parallel",
+                "voltamanager.cli.get_latest_versions_parallel",
                 return_value={"typescript": "5.0.0"},
             ),
         ):
@@ -141,11 +141,11 @@ class TestBreakingChangesCommand:
         """Test that changelog links are included in output."""
         with (
             patch(
-                "voltamanager.get_installed_packages",
+                "voltamanager.cli.get_installed_packages",
                 return_value=["typescript@4.9.5"],
             ),
             patch(
-                "voltamanager.npm.get_latest_versions_parallel",
+                "voltamanager.cli.get_latest_versions_parallel",
                 return_value={"typescript": "5.0.0"},
             ),
         ):
@@ -160,11 +160,11 @@ class TestBreakingChangesCommand:
         """Test checking multiple specific packages."""
         with (
             patch(
-                "voltamanager.get_installed_packages",
+                "voltamanager.cli.get_installed_packages",
                 return_value=["typescript@4.9.5", "react@17.0.2", "lodash@4.17.20"],
             ),
             patch(
-                "voltamanager.npm.get_latest_versions_parallel",
+                "voltamanager.cli.get_latest_versions_parallel",
                 return_value={"typescript": "5.0.0", "react": "18.2.0"},
             ),
         ):

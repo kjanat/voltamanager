@@ -14,17 +14,17 @@ runner = CliRunner()
 class TestMainCommandIntegration:
     """Integration tests for main command with actual CLI invocation."""
 
-    @patch("voltamanager.check_dependencies")
-    @patch("voltamanager.get_installed_packages")
+    @patch("voltamanager.cli.check_dependencies")
+    @patch("voltamanager.cli.get_installed_packages")
     def test_main_help(self, mock_get_installed: Mock, mock_check_deps: Mock):
         """Test main command help."""
         result = runner.invoke(app, ["--help"])
         assert result.exit_code == 0
         assert "Check and upgrade" in result.stdout
 
-    @patch("voltamanager.check_dependencies")
-    @patch("voltamanager.get_installed_packages")
-    @patch("voltamanager.check_and_update")
+    @patch("voltamanager.cli.check_dependencies")
+    @patch("voltamanager.cli.get_installed_packages")
+    @patch("voltamanager.cli.check_and_update")
     def test_main_basic_invocation(
         self, mock_check_update: Mock, mock_get_installed: Mock, mock_check_deps: Mock
     ):
@@ -36,7 +36,7 @@ class TestMainCommandIntegration:
         result = runner.invoke(app, [])
         assert result.exit_code == 0
 
-    @patch("voltamanager.check_dependencies")
+    @patch("voltamanager.cli.check_dependencies")
     def test_main_missing_dependencies(self, mock_check_deps: Mock):
         """Test main command with missing dependencies."""
         mock_check_deps.return_value = False
@@ -44,8 +44,8 @@ class TestMainCommandIntegration:
         result = runner.invoke(app, [])
         assert result.exit_code == 127
 
-    @patch("voltamanager.check_dependencies")
-    @patch("voltamanager.check_and_update")
+    @patch("voltamanager.cli.check_dependencies")
+    @patch("voltamanager.cli.check_and_update")
     def test_main_with_flags(self, mock_check_update: Mock, mock_check_deps: Mock):
         """Test main command with various flags."""
         mock_check_deps.return_value = True
@@ -67,6 +67,52 @@ class TestMainCommandIntegration:
         result = runner.invoke(app, ["--verbose"])
         assert result.exit_code == 0
 
+        # Test quiet flag
+        result = runner.invoke(app, ["--quiet"])
+        assert result.exit_code == 0
+
+    @patch("voltamanager.cli.check_dependencies")
+    @patch("voltamanager.cli.get_installed_packages")
+    @patch("voltamanager.cli.check_and_update")
+    def test_quiet_flag_passed_to_check_and_update(
+        self,
+        mock_check_update: Mock,
+        mock_get_installed: Mock,
+        mock_check_deps: Mock,
+    ):
+        """Test that --quiet flag is passed to check_and_update."""
+        mock_check_deps.return_value = True
+        mock_get_installed.return_value = ["typescript@5.0.0"]
+        mock_check_update.return_value = 0
+
+        result = runner.invoke(app, ["--quiet"])
+        assert result.exit_code == 0
+        # Verify check_and_update was called with quiet=True
+        mock_check_update.assert_called_once()
+        # quiet is the last positional argument
+        args, _ = mock_check_update.call_args
+        assert args[-1] is True, "quiet should be True"
+
+    @patch("voltamanager.cli.check_dependencies")
+    @patch("voltamanager.cli.get_installed_packages")
+    @patch("voltamanager.cli.check_and_update")
+    def test_quiet_flag_short_form(
+        self,
+        mock_check_update: Mock,
+        mock_get_installed: Mock,
+        mock_check_deps: Mock,
+    ):
+        """Test that -q short flag works."""
+        mock_check_deps.return_value = True
+        mock_get_installed.return_value = ["typescript@5.0.0"]
+        mock_check_update.return_value = 0
+
+        result = runner.invoke(app, ["-q"])
+        assert result.exit_code == 0
+        mock_check_update.assert_called_once()
+        args, _ = mock_check_update.call_args
+        assert args[-1] is True, "quiet should be True"
+
 
 class TestConfigCommandIntegration:
     """Integration tests for config command."""
@@ -77,7 +123,7 @@ class TestConfigCommandIntegration:
         result = runner.invoke(app, ["config", "--help"])
         assert result.exit_code == 0
 
-    @patch("voltamanager.create_default_config")
+    @patch("voltamanager.cli.create_default_config")
     def test_config_execution(self, mock_create: Mock):
         """Test config command creates default config."""
         result = runner.invoke(app, ["config"])
@@ -95,7 +141,7 @@ class TestClearCacheCommandIntegration:
         result = runner.invoke(app, ["clear-cache", "--help"])
         assert result.exit_code == 0
 
-    @patch("voltamanager.clear_cache")
+    @patch("voltamanager.cli.clear_cache")
     def test_clear_cache_execution(self, mock_clear: Mock):
         """Test clear-cache command execution."""
         result = runner.invoke(app, ["clear-cache"])

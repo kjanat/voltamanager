@@ -167,7 +167,10 @@ class TestDisplayStatistics:
     def test_display_statistics_basic():
         """Test statistics display."""
         states = ["up-to-date", "OUTDATED", "up-to-date", "PROJECT", "UNKNOWN"]
-        display_statistics(states)
+        names = ["pkg1", "pkg2", "pkg3", "pkg4", "pkg5"]
+        installed = ["1.0.0", "1.0.0", "1.0.0", "project", "1.0.0"]
+        latest = ["1.0.0", "2.0.0", "1.0.0", "-", "?"]
+        display_statistics(states, names, installed, latest)
 
     @staticmethod
     def test_display_statistics_empty():
@@ -184,13 +187,19 @@ class TestDisplayStatistics:
     def test_display_statistics_all_outdated():
         """Test statistics when all packages are outdated."""
         states = ["OUTDATED", "OUTDATED", "OUTDATED"]
-        display_statistics(states)
+        names = ["pkg1", "pkg2", "pkg3"]
+        installed = ["1.0.0", "2.0.0", "3.0.0"]
+        latest = ["2.0.0", "2.1.0", "3.0.1"]  # major, minor, patch
+        display_statistics(states, names, installed, latest)
 
     @staticmethod
     def test_display_statistics_mixed():
         """Test statistics with mixed states."""
         states = ["up-to-date", "OUTDATED", "PROJECT", "UNKNOWN"] * 5
-        display_statistics(states)
+        names = [f"pkg{i}" for i in range(20)]
+        installed = ["1.0.0", "1.0.0", "project", "1.0.0"] * 5
+        latest = ["1.0.0", "2.0.0", "-", "?"] * 5
+        display_statistics(states, names, installed, latest)
 
 
 class TestDisplayDryRunReport:
@@ -266,7 +275,7 @@ class TestDisplayIntegration:
 
         # Should not raise exceptions
         display_table(names, installed, latest, states)
-        display_statistics(states)
+        display_statistics(states, names, installed, latest)
         display_json(names, installed, latest, states)
 
     @staticmethod
@@ -280,7 +289,7 @@ class TestDisplayIntegration:
 
         # Should not raise exceptions
         display_table(names, installed, latest, states)
-        display_statistics(states)
+        display_statistics(states, names, installed, latest)
         display_dry_run_report(to_install, names, installed, latest)
 
     @staticmethod
@@ -293,4 +302,4 @@ class TestDisplayIntegration:
 
         # Should not raise exceptions
         display_table(names, installed, latest, states, outdated_only=True)
-        display_statistics(states)
+        display_statistics(states, names, installed, latest)

@@ -101,6 +101,7 @@ def check_and_update(  # noqa: C901, PLR0913, PLR0917, PLR0911, PLR0912, PLR0915
     config: Config,
     verbose: bool = False,
     all_packages: bool = False,
+    quiet: bool = False,
 ) -> int:
     """Check versions and optionally update packages."""
     # Check for local volta configuration
@@ -213,9 +214,19 @@ def check_and_update(  # noqa: C901, PLR0913, PLR0917, PLR0911, PLR0912, PLR0915
     if do_check:
         if json_output:
             display_json(names, installed, latest, states)
+        elif quiet:
+            # Quiet mode: only show summary counts
+            outdated_count = states.count("OUTDATED")
+            up_to_date_count = states.count("up-to-date")
+            unknown_count = states.count("UNKNOWN")
+            console.print(
+                f"[dim]{len(names)} packages: {up_to_date_count} up-to-date, {outdated_count} outdated"
+                + (f", {unknown_count} unknown" if unknown_count else "")
+                + "[/dim]"
+            )
         else:
             display_table(names, installed, latest, states, outdated_only)
-            display_statistics(states)
+            display_statistics(states, names, installed, latest)
 
             # Show info about excluded packages if not showing them
             if excluded_packages and not all_packages:

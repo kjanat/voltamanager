@@ -442,3 +442,39 @@ class TestCheckAndUpdate:
         assert result == 0
         # axios should be cached after fetch
         mock_cache_version.assert_called_once_with("axios", "1.5.0")
+
+    @patch("voltamanager.operations.get_latest_versions_parallel")
+    @patch("voltamanager.operations.check_local_volta_config")
+    def test_check_and_update_quiet_mode_suppresses_output(
+        self, mock_check_config, mock_get_versions, tmp_path
+    ):
+        """Test check_and_update quiet mode suppresses table and stats."""
+        mock_check_config.return_value = False
+        mock_get_versions.return_value = {"pkg1": "1.0.0", "pkg2": "2.0.0"}
+        config = Config()
+
+        with (
+            patch("voltamanager.operations.display_table") as mock_display_table,
+            patch("voltamanager.operations.display_statistics") as mock_display_stats,
+        ):
+            result = check_and_update(
+                ["pkg1@1.0.0", "pkg2@1.0.0"],
+                tmp_path,
+                do_check=True,
+                do_update=False,
+                dry_run=False,
+                include_project=False,
+                json_output=False,
+                outdated_only=False,
+                interactive=False,
+                use_cache=False,
+                config=config,
+                verbose=False,
+                all_packages=False,
+                quiet=True,
+            )
+
+            assert result == 0
+            # Table and statistics should NOT be called in quiet mode
+            mock_display_table.assert_not_called()
+            mock_display_stats.assert_not_called()

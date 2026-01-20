@@ -125,29 +125,12 @@ def get_minor_updates(
     """
     minor_updates = []
 
-    for i, state in enumerate(states):  # noqa: PLR1702
+    for i, state in enumerate(states):
         if state == "OUTDATED":
             current = installed[i]
             lat = latest[i]
-            if lat != "?" and not is_major_update(current, lat):
-                try:
-                    current_ver = pkg_version.parse(current)
-                    latest_ver = pkg_version.parse(lat)
-
-                    if (
-                        hasattr(current_ver, "release")
-                        and hasattr(latest_ver, "release")
-                        and len(current_ver.release) >= 2
-                        and len(latest_ver.release) >= 2
-                    ):
-                        # Minor update: major same, minor different
-                        if (
-                            current_ver.release[0] == latest_ver.release[0]
-                            and current_ver.release[1] < latest_ver.release[1]
-                        ):
-                            minor_updates.append((names[i], current, lat))
-                except (pkg_version.InvalidVersion, AttributeError, IndexError):
-                    pass
+            if lat != "?" and is_minor_update(current, lat):
+                minor_updates.append((names[i], current, lat))
 
     return minor_updates
 

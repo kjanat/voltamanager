@@ -39,18 +39,60 @@ class TestGetLatestVersion:
             assert call_args[0][0] == ["npm", "view", "@vue/cli", "version"]
 
     def test_get_version_timeout(self, tmp_path: Path) -> None:
-        """Test handling timeout error."""
-        with patch("subprocess.run") as mock_run:
+        """Test handling timeout error after all retries exhausted."""
+        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
             mock_run.side_effect = subprocess.TimeoutExpired(["npm"], 10)
             version = get_latest_version("lodash", tmp_path)
+
             assert version is None
+            # Should retry 2 times (3 total attempts)
+            assert mock_run.call_count == 3
+            # Should sleep with exponential backoff (0.5s, 1.0s)
+            assert mock_sleep.call_count == 2
+            mock_sleep.assert_any_call(0.5)
+            mock_sleep.assert_any_call(1.0)
 
     def test_get_version_not_found(self, tmp_path: Path) -> None:
-        """Test handling package not found error."""
-        with patch("subprocess.run") as mock_run:
+        """Test handling package not found error after all retries exhausted."""
+        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
             mock_run.side_effect = subprocess.CalledProcessError(1, ["npm"])
             version = get_latest_version("nonexistent-package", tmp_path)
+
             assert version is None
+            # Should retry 2 times (3 total attempts)
+            assert mock_run.call_count == 3
+            assert mock_sleep.call_count == 2
+
+    def test_get_version_retry_success_second_attempt(self, tmp_path: Path) -> None:
+        """Test successful retry on second attempt."""
+        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
+            # First call fails, second succeeds
+            mock_run.side_effect = [
+                subprocess.TimeoutExpired(["npm"], 10),
+                Mock(stdout="5.0.0\n", returncode=0),
+            ]
+            version = get_latest_version("lodash", tmp_path)
+
+            assert version == "5.0.0"
+            assert mock_run.call_count == 2
+            # Should only sleep once (after first failure)
+            assert mock_sleep.call_count == 1
+            mock_sleep.assert_called_once_with(0.5)
+
+    def test_get_version_retry_success_third_attempt(self, tmp_path: Path) -> None:
+        """Test successful retry on third attempt."""
+        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
+            # First two calls fail, third succeeds
+            mock_run.side_effect = [
+                subprocess.CalledProcessError(1, ["npm"]),
+                subprocess.TimeoutExpired(["npm"], 10),
+                Mock(stdout="5.0.0\n", returncode=0),
+            ]
+            version = get_latest_version("lodash", tmp_path)
+
+            assert version == "5.0.0"
+            assert mock_run.call_count == 3
+            assert mock_sleep.call_count == 2
 
     def test_get_version_empty_output(self, tmp_path: Path) -> None:
         """Test handling empty output."""

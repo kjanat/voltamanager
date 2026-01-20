@@ -2,6 +2,7 @@
 
 import json
 import subprocess
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
@@ -10,21 +11,34 @@ from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
 console = Console()
 
+# Retry configuration
+MAX_RETRIES = 2
+RETRY_DELAYS = (0.5, 1.0)  # Exponential backoff delays in seconds
+
 
 def get_latest_version(package_name: str, safe_dir: Path) -> str | None:
-    """Query npm registry for the latest version of a package."""
-    try:
-        result = subprocess.run(
-            ["npm", "view", package_name, "version"],
-            cwd=safe_dir,
-            capture_output=True,
-            text=True,
-            check=True,
-            timeout=10,
-        )
-        return result.stdout.strip()
-    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
-        return None
+    """Query npm registry for the latest version of a package.
+
+    Retries up to MAX_RETRIES times on timeout or subprocess errors with
+    exponential backoff.
+    """
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            result = subprocess.run(
+                ["npm", "view", package_name, "version"],
+                cwd=safe_dir,
+                capture_output=True,
+                text=True,
+                check=True,
+                timeout=10,
+            )
+            return result.stdout.strip()
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAYS[attempt])
+
+    # All retries exhausted
+    return None
 
 
 def get_latest_versions_batch(
@@ -51,15 +65,17 @@ def get_latest_versions_batch(
         # Parse JSON response
         data = json.loads(result.stdout)
 
-        # Handle single package response (not a list)
-        if isinstance(data, dict):
-            # Single package queried
-            if len(package_names) == 1:
+        # Handle single package response
+        if len(package_names) == 1:
+            if isinstance(data, dict):
                 version = data.get("version")
                 return {package_names[0]: version if isinstance(version, str) else None}
-            return {}
+            if isinstance(data, str):
+                # npm may return just the version string
+                return {package_names[0]: data}
+            return {package_names[0]: None}
 
-        # Multiple packages: npm returns list or dict
+        # Multiple packages: npm returns list
         versions: dict[str, str | None] = {}
         if isinstance(data, list):
             for i, pkg_name in enumerate(package_names):

@@ -49,7 +49,7 @@ def test_rollback_all_packages(mock_run, runner, snapshot_dir) -> None:
         result = runner.invoke(app, ["rollback", "--force"])
 
     assert result.exit_code == 0
-    assert "✓ Rollback complete" in result.stdout
+    assert "Rollback complete" in result.stdout
 
     # Verify volta install was called with all packages
     mock_run.assert_called_once()
@@ -71,7 +71,7 @@ def test_rollback_single_package(mock_run, runner, snapshot_dir) -> None:
         result = runner.invoke(app, ["rollback", "typescript", "--force"])
 
     assert result.exit_code == 0
-    assert "✓ Rollback complete" in result.stdout
+    assert "Rollback complete" in result.stdout
     assert "Rolled back 1 packages" in result.stdout
 
     # Verify only typescript was rolled back
@@ -91,7 +91,7 @@ def test_rollback_multiple_packages(mock_run, runner, snapshot_dir) -> None:
         result = runner.invoke(app, ["rollback", "typescript", "eslint", "--force"])
 
     assert result.exit_code == 0
-    assert "✓ Rollback complete" in result.stdout
+    assert "Rollback complete" in result.stdout
     assert "Rolled back 2 packages" in result.stdout
 
     # Verify only specified packages were rolled back
@@ -136,7 +136,7 @@ def test_rollback_scoped_package(mock_run, runner, snapshot_dir) -> None:
         result = runner.invoke(app, ["rollback", "@vue/cli", "--force"])
 
     assert result.exit_code == 0
-    assert "✓ Rollback complete" in result.stdout
+    assert "Rollback complete" in result.stdout
 
     # Verify scoped package was rolled back
     mock_run.assert_called_once()
@@ -151,7 +151,7 @@ def test_rollback_no_snapshot(runner) -> None:
             result = runner.invoke(app, ["rollback", "--force"])
 
     assert result.exit_code == 1
-    assert "✗ No snapshot found - cannot rollback" in result.stdout
+    assert "No snapshot found - cannot rollback" in result.stdout
     assert "Snapshots are created before updates" in result.stdout
 
 
@@ -167,7 +167,7 @@ def test_rollback_volta_failure(mock_run, runner, snapshot_dir) -> None:
         result = runner.invoke(app, ["rollback", "--force"])
 
     assert result.exit_code == 1
-    assert "✗ Rollback failed" in result.stdout
+    assert "Rollback failed" in result.stdout
 
 
 def test_rollback_requires_confirmation_without_force(runner, snapshot_dir) -> None:
@@ -192,5 +192,5 @@ def test_rollback_with_confirmation(mock_run, runner, snapshot_dir) -> None:
         result = runner.invoke(app, ["rollback"], input="y\n")
 
     assert result.exit_code == 0
-    assert "✓ Rollback complete" in result.stdout
+    assert "Rollback complete" in result.stdout
     mock_run.assert_called_once()
