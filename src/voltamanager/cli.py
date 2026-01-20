@@ -387,31 +387,28 @@ def benchmark(
         "@webpack-cli/serve",
     ][:packages]
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        safe_dir = Path(tmpdir)
+    # Sequential benchmark (direct HTTP - no subprocess needed)
+    console.print("[cyan]Sequential queries...[/cyan]")
+    sequential_start = time.time()
+    for pkg in test_packages:
+        get_latest_version(pkg)
+    sequential_time = time.time() - sequential_start
 
-        # Sequential benchmark
-        console.print("[cyan]Sequential queries...[/cyan]")
-        sequential_start = time.time()
-        for pkg in test_packages:
-            get_latest_version(pkg, safe_dir)
-        sequential_time = time.time() - sequential_start
+    # Parallel benchmark (default workers)
+    console.print("[cyan]Parallel queries (10 workers)...[/cyan]")
+    parallel_start = time.time()
+    get_latest_versions_parallel(
+        [(pkg, "1.0.0") for pkg in test_packages], max_workers=10
+    )
+    parallel_time = time.time() - parallel_start
 
-        # Parallel benchmark (default workers)
-        console.print("[cyan]Parallel queries (10 workers)...[/cyan]")
-        parallel_start = time.time()
-        get_latest_versions_parallel(
-            [(pkg, "1.0.0") for pkg in test_packages], safe_dir, max_workers=10
-        )
-        parallel_time = time.time() - parallel_start
-
-        # Parallel benchmark (high concurrency)
-        console.print("[cyan]Parallel queries (20 workers)...[/cyan]")
-        parallel_high_start = time.time()
-        get_latest_versions_parallel(
-            [(pkg, "1.0.0") for pkg in test_packages], safe_dir, max_workers=20
-        )
-        parallel_high_time = time.time() - parallel_high_start
+    # Parallel benchmark (high concurrency)
+    console.print("[cyan]Parallel queries (20 workers)...[/cyan]")
+    parallel_high_start = time.time()
+    get_latest_versions_parallel(
+        [(pkg, "1.0.0") for pkg in test_packages], max_workers=20
+    )
+    parallel_high_time = time.time() - parallel_high_start
 
     # Display results
     console.print("\n[bold]Results:[/bold]")
@@ -747,7 +744,7 @@ def breaking_changes(  # noqa: C901, PLR0915
         console.print(f"[dim]Checking {len(pkg_list)} packages for updates...[/dim]\n")
 
         # Get latest versions
-        latest_dict = get_latest_versions_parallel(pkg_list, safe_dir)
+        latest_dict = get_latest_versions_parallel(pkg_list)
 
         # Build lists for analysis
         names = []

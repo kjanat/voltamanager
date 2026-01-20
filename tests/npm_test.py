@@ -1,9 +1,7 @@
 """Tests for npm module."""
 
-import json
-import subprocess
-from pathlib import Path
-from unittest.mock import Mock, patch
+import urllib.error
+from unittest.mock import MagicMock, patch
 
 from voltamanager.npm import (
     get_latest_version,
@@ -13,188 +11,185 @@ from voltamanager.npm import (
 
 
 class TestGetLatestVersion:
-    """Test get_latest_version function."""
+    """Test get_latest_version function (HTTP-based)."""
 
-    def test_get_version_success(self, tmp_path: Path) -> None:
-        """Test successful version retrieval."""
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(stdout="5.0.0\n", returncode=0)
-            version = get_latest_version("lodash", tmp_path)
+    def test_get_version_success(self) -> None:
+        """Test successful version retrieval via HTTP."""
+        mock_response = MagicMock()
+        mock_response.read.return_value = b'{"version": "5.0.0"}'
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("urllib.request.urlopen", return_value=mock_response):
+            version = get_latest_version("lodash")
 
             assert version == "5.0.0"
-            mock_run.assert_called_once()
-            call_args = mock_run.call_args
-            assert call_args[0][0] == ["npm", "view", "lodash", "version"]
-            assert call_args[1]["cwd"] == tmp_path
-            assert call_args[1]["timeout"] == 10
 
-    def test_get_version_scoped_package(self, tmp_path: Path) -> None:
-        """Test version retrieval for scoped package."""
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(stdout="5.0.8\n", returncode=0)
-            version = get_latest_version("@vue/cli", tmp_path)
+    def test_get_version_scoped_package(self) -> None:
+        """Test version retrieval for scoped package (URL encoding)."""
+        mock_response = MagicMock()
+        mock_response.read.return_value = b'{"version": "5.0.8"}'
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch(
+            "urllib.request.urlopen", return_value=mock_response
+        ) as mock_urlopen:
+            version = get_latest_version("@vue/cli")
 
             assert version == "5.0.8"
-            call_args = mock_run.call_args
-            assert call_args[0][0] == ["npm", "view", "@vue/cli", "version"]
+            # Check URL encoding of scoped package
+            call_args = mock_urlopen.call_args
+            request = call_args[0][0]
+            assert "@vue%2Fcli" in request.full_url
 
-    def test_get_version_timeout(self, tmp_path: Path) -> None:
+    def test_get_version_timeout(self) -> None:
         """Test handling timeout error after all retries exhausted."""
-        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
-            mock_run.side_effect = subprocess.TimeoutExpired(["npm"], 10)
-            version = get_latest_version("lodash", tmp_path)
+        with (
+            patch("urllib.request.urlopen") as mock_urlopen,
+            patch("time.sleep") as mock_sleep,
+        ):
+            mock_urlopen.side_effect = TimeoutError("Connection timed out")
+            version = get_latest_version("lodash")
 
             assert version is None
             # Should retry 2 times (3 total attempts)
-            assert mock_run.call_count == 3
+            assert mock_urlopen.call_count == 3
             # Should sleep with exponential backoff (0.5s, 1.0s)
             assert mock_sleep.call_count == 2
             mock_sleep.assert_any_call(0.5)
             mock_sleep.assert_any_call(1.0)
 
-    def test_get_version_not_found(self, tmp_path: Path) -> None:
-        """Test handling package not found error after all retries exhausted."""
-        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
-            mock_run.side_effect = subprocess.CalledProcessError(1, ["npm"])
-            version = get_latest_version("nonexistent-package", tmp_path)
+    def test_get_version_not_found(self) -> None:
+        """Test handling HTTP 404 error after all retries exhausted."""
+        with (
+            patch("urllib.request.urlopen") as mock_urlopen,
+            patch("time.sleep") as mock_sleep,
+        ):
+            mock_urlopen.side_effect = urllib.error.HTTPError(
+                "url", 404, "Not Found", {}, None
+            )
+            version = get_latest_version("nonexistent-package")
 
             assert version is None
             # Should retry 2 times (3 total attempts)
-            assert mock_run.call_count == 3
+            assert mock_urlopen.call_count == 3
             assert mock_sleep.call_count == 2
 
-    def test_get_version_retry_success_second_attempt(self, tmp_path: Path) -> None:
+    def test_get_version_retry_success_second_attempt(self) -> None:
         """Test successful retry on second attempt."""
-        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b'{"version": "5.0.0"}'
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with (
+            patch("urllib.request.urlopen") as mock_urlopen,
+            patch("time.sleep") as mock_sleep,
+        ):
             # First call fails, second succeeds
-            mock_run.side_effect = [
-                subprocess.TimeoutExpired(["npm"], 10),
-                Mock(stdout="5.0.0\n", returncode=0),
+            mock_urlopen.side_effect = [
+                TimeoutError("Connection timed out"),
+                mock_response,
             ]
-            version = get_latest_version("lodash", tmp_path)
+            version = get_latest_version("lodash")
 
             assert version == "5.0.0"
-            assert mock_run.call_count == 2
+            assert mock_urlopen.call_count == 2
             # Should only sleep once (after first failure)
             assert mock_sleep.call_count == 1
             mock_sleep.assert_called_once_with(0.5)
 
-    def test_get_version_retry_success_third_attempt(self, tmp_path: Path) -> None:
+    def test_get_version_retry_success_third_attempt(self) -> None:
         """Test successful retry on third attempt."""
-        with patch("subprocess.run") as mock_run, patch("time.sleep") as mock_sleep:
+        mock_response = MagicMock()
+        mock_response.read.return_value = b'{"version": "5.0.0"}'
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with (
+            patch("urllib.request.urlopen") as mock_urlopen,
+            patch("time.sleep") as mock_sleep,
+        ):
             # First two calls fail, third succeeds
-            mock_run.side_effect = [
-                subprocess.CalledProcessError(1, ["npm"]),
-                subprocess.TimeoutExpired(["npm"], 10),
-                Mock(stdout="5.0.0\n", returncode=0),
+            mock_urlopen.side_effect = [
+                urllib.error.URLError("Network error"),
+                TimeoutError("Connection timed out"),
+                mock_response,
             ]
-            version = get_latest_version("lodash", tmp_path)
+            version = get_latest_version("lodash")
 
             assert version == "5.0.0"
-            assert mock_run.call_count == 3
+            assert mock_urlopen.call_count == 3
             assert mock_sleep.call_count == 2
 
-    def test_get_version_empty_output(self, tmp_path: Path) -> None:
-        """Test handling empty output."""
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(stdout="", returncode=0)
-            version = get_latest_version("lodash", tmp_path)
-            assert not version
+    def test_get_version_invalid_json(self) -> None:
+        """Test handling invalid JSON response."""
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"not valid json"
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with (
+            patch("urllib.request.urlopen", return_value=mock_response),
+            patch("time.sleep"),
+        ):
+            version = get_latest_version("lodash")
+            assert version is None
 
 
 class TestGetLatestVersionsBatch:
-    """Test get_latest_versions_batch function."""
+    """Test get_latest_versions_batch function (HTTP bulk endpoint)."""
 
-    def test_batch_single_package(self, tmp_path: Path) -> None:
-        """Test batch query with single package."""
-        mock_response = json.dumps({"version": "5.0.0"})
-
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(stdout=mock_response, returncode=0)
-            versions = get_latest_versions_batch(["lodash"], tmp_path)
-
-            assert versions == {"lodash": "5.0.0"}
-
-    def test_batch_multiple_packages(self, tmp_path: Path) -> None:
-        """Test batch query with multiple packages."""
-        mock_response = json.dumps([
-            {"version": "5.0.0"},
-            {"version": "8.0.0"},
-            {"version": "5.0.8"},
-        ])
-
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(stdout=mock_response, returncode=0)
-            versions = get_latest_versions_batch(
-                ["lodash", "eslint", "@vue/cli"], tmp_path
-            )
-
-            assert versions == {
-                "lodash": "5.0.0",
-                "eslint": "8.0.0",
-                "@vue/cli": "5.0.8",
-            }
-
-    def test_batch_empty_list(self, tmp_path: Path) -> None:
+    def test_batch_empty_list(self) -> None:
         """Test batch query with empty package list."""
-        versions = get_latest_versions_batch([], tmp_path)
+        versions = get_latest_versions_batch([])
         assert versions == {}
 
-    def test_batch_subprocess_error(self, tmp_path: Path) -> None:
-        """Test handling subprocess error."""
-        with patch("subprocess.run") as mock_run:
-            mock_run.side_effect = subprocess.CalledProcessError(1, ["npm"])
-            versions = get_latest_versions_batch(["lodash"], tmp_path)
-            assert versions == {}
-
-    def test_batch_timeout(self, tmp_path: Path) -> None:
-        """Test handling timeout."""
-        with patch("subprocess.run") as mock_run:
-            mock_run.side_effect = subprocess.TimeoutExpired(["npm"], 30)
-            versions = get_latest_versions_batch(["lodash"], tmp_path)
-            assert versions == {}
-
-    def test_batch_invalid_json(self, tmp_path: Path) -> None:
-        """Test handling invalid JSON response."""
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(stdout="not valid json", returncode=0)
-            versions = get_latest_versions_batch(["lodash"], tmp_path)
-            assert versions == {}
-
-    def test_batch_incomplete_response(self, tmp_path: Path) -> None:
-        """Test handling incomplete response (fewer results than packages)."""
-        mock_response = json.dumps([
-            {"version": "5.0.0"}
-            # Missing entries for other packages
-        ])
-
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(stdout=mock_response, returncode=0)
-            versions = get_latest_versions_batch(
-                ["lodash", "eslint", "@vue/cli"], tmp_path
+    def test_batch_http_error(self) -> None:
+        """Test handling HTTP error."""
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_urlopen.side_effect = urllib.error.HTTPError(
+                "url", 500, "Server Error", {}, None
             )
+            versions = get_latest_versions_batch(["lodash"])
+            assert versions == {}
 
-            assert versions.get("lodash") == "5.0.0"
-            assert versions.get("eslint") is None
-            assert versions.get("@vue/cli") is None
+    def test_batch_timeout(self) -> None:
+        """Test handling timeout."""
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            mock_urlopen.side_effect = TimeoutError("Connection timed out")
+            versions = get_latest_versions_batch(["lodash"])
+            assert versions == {}
+
+    def test_batch_invalid_json(self) -> None:
+        """Test handling invalid JSON response."""
+        mock_response = MagicMock()
+        mock_response.read.return_value = b"not valid json"
+        mock_response.__enter__ = lambda s: s
+        mock_response.__exit__ = MagicMock(return_value=False)
+
+        with patch("urllib.request.urlopen", return_value=mock_response):
+            versions = get_latest_versions_batch(["lodash"])
+            assert versions == {}
 
 
 class TestGetLatestVersionsParallel:
     """Test get_latest_versions_parallel function."""
 
-    def test_parallel_small_batch_success(self, tmp_path: Path) -> None:
+    def test_parallel_small_batch_success(self) -> None:
         """Test parallel queries with small package count (uses batch)."""
         packages = [("lodash", "4.17.21"), ("eslint", "7.0.0")]
 
         with patch("voltamanager.npm.get_latest_versions_batch") as mock_batch:
             mock_batch.return_value = {"lodash": "5.0.0", "eslint": "8.0.0"}
 
-            versions = get_latest_versions_parallel(packages, tmp_path)
+            versions = get_latest_versions_parallel(packages)
 
             assert versions == {"lodash": "5.0.0", "eslint": "8.0.0"}
             mock_batch.assert_called_once()
 
-    def test_parallel_small_batch_fallback(self, tmp_path: Path) -> None:
+    def test_parallel_small_batch_fallback(self) -> None:
         """Test fallback to parallel when batch fails."""
         packages = [("lodash", "4.17.21"), ("eslint", "7.0.0")]
 
@@ -205,25 +200,25 @@ class TestGetLatestVersionsParallel:
             mock_batch.return_value = {}  # Batch fails
             mock_get.side_effect = ["5.0.0", "8.0.0"]
 
-            versions = get_latest_versions_parallel(packages, tmp_path)
+            versions = get_latest_versions_parallel(packages)
 
             assert versions == {"lodash": "5.0.0", "eslint": "8.0.0"}
             assert mock_get.call_count == 2
 
-    def test_parallel_large_batch(self, tmp_path: Path) -> None:
-        """Test parallel queries with many packages (skips batch)."""
-        packages = [(f"pkg{i}", "1.0.0") for i in range(10)]
+    def test_parallel_large_batch(self) -> None:
+        """Test parallel queries with many packages (>10, skips batch)."""
+        packages = [(f"pkg{i}", "1.0.0") for i in range(15)]
 
         with patch("voltamanager.npm.get_latest_version") as mock_get:
             mock_get.return_value = "2.0.0"
 
-            versions = get_latest_versions_parallel(packages, tmp_path)
+            versions = get_latest_versions_parallel(packages)
 
-            assert len(versions) == 10
+            assert len(versions) == 15
             assert all(v == "2.0.0" for v in versions.values())
-            assert mock_get.call_count == 10
+            assert mock_get.call_count == 15
 
-    def test_parallel_project_packages_excluded(self, tmp_path: Path) -> None:
+    def test_parallel_project_packages_excluded(self) -> None:
         """Test that project-pinned packages are excluded."""
         packages = [
             ("lodash", "4.17.21"),
@@ -231,52 +226,52 @@ class TestGetLatestVersionsParallel:
             ("typescript", "5.0.0"),
         ]
 
-        with patch("voltamanager.npm.get_latest_version") as mock_get:
-            mock_get.return_value = "2.0.0"
+        with patch("voltamanager.npm.get_latest_versions_batch") as mock_batch:
+            mock_batch.return_value = {"lodash": "2.0.0", "typescript": "2.0.0"}
 
-            versions = get_latest_versions_parallel(packages, tmp_path)
+            versions = get_latest_versions_parallel(packages)
 
             assert "eslint" not in versions
             assert "lodash" in versions
             assert "typescript" in versions
-            assert mock_get.call_count == 2
 
-    def test_parallel_empty_packages(self, tmp_path: Path) -> None:
+    def test_parallel_empty_packages(self) -> None:
         """Test with empty package list."""
-        versions = get_latest_versions_parallel([], tmp_path)
+        versions = get_latest_versions_parallel([])
         assert versions == {}
 
-    def test_parallel_all_project_packages(self, tmp_path: Path) -> None:
+    def test_parallel_all_project_packages(self) -> None:
         """Test with all project-pinned packages."""
         packages = [("pkg1", "project"), ("pkg2", "project")]
 
-        versions = get_latest_versions_parallel(packages, tmp_path)
+        versions = get_latest_versions_parallel(packages)
         assert versions == {}
 
-    def test_parallel_exception_handling(self, tmp_path: Path) -> None:
+    def test_parallel_exception_handling(self) -> None:
         """Test handling exceptions in parallel execution."""
-        packages = [("lodash", "4.17.21"), ("error-pkg", "1.0.0")]
+        packages = [(f"pkg{i}", "1.0.0") for i in range(15)]  # >10 to skip batch
 
-        def mock_version(name: str, _: Path) -> str | None:
-            if name == "error-pkg":
+        def mock_version(name: str) -> str | None:
+            if name == "pkg5":
                 raise Exception("Network error")  # noqa: TRY002, TRY003
             return "2.0.0"
 
         with patch("voltamanager.npm.get_latest_version", side_effect=mock_version):
-            versions = get_latest_versions_parallel(packages, tmp_path)
+            versions = get_latest_versions_parallel(packages)
 
-            assert versions["lodash"] == "2.0.0"
-            assert versions["error-pkg"] is None
+            assert versions["pkg0"] == "2.0.0"
+            assert versions["pkg5"] is None
+            assert len(versions) == 15
 
-    def test_parallel_custom_max_workers(self, tmp_path: Path) -> None:
+    def test_parallel_custom_max_workers(self) -> None:
         """Test with custom max_workers parameter."""
-        packages = [(f"pkg{i}", "1.0.0") for i in range(5)]
+        packages = [(f"pkg{i}", "1.0.0") for i in range(15)]  # >10 to skip batch
 
         with patch("voltamanager.npm.get_latest_version") as mock_get:
             mock_get.return_value = "2.0.0"
 
             # Just verify it runs without error - max_workers is internal implementation
-            versions = get_latest_versions_parallel(packages, tmp_path, max_workers=3)
+            versions = get_latest_versions_parallel(packages, max_workers=3)
 
-            assert len(versions) == 5
+            assert len(versions) == 15
             assert all(v == "2.0.0" for v in versions.values())

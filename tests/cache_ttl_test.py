@@ -2,11 +2,12 @@
 
 import json
 import tempfile
-from datetime import datetime, timedelta
+import time
 from pathlib import Path
 
 import pytest
 
+import voltamanager.cache
 from voltamanager.cache import cache_version, get_cached_version
 
 
@@ -15,13 +16,24 @@ def temp_cache_dir(monkeypatch):
     """Create temporary cache directory for testing."""
     with tempfile.TemporaryDirectory() as tmpdir:
         cache_dir = Path(tmpdir) / "cache"
-        cache_dir.mkdir(parents=True, exist_ok=True)
+        cache_file = cache_dir / "versions.json"
         monkeypatch.setattr("voltamanager.cache.CACHE_DIR", cache_dir)
-        yield cache_dir
+        monkeypatch.setattr("voltamanager.cache.CACHE_FILE", cache_file)
+        # Reset in-memory cache state
+        voltamanager.cache._state["cache"] = None
+        voltamanager.cache._state["mtime"] = 0.0
+        yield cache_dir, cache_file
+
+
+def _reset_cache_state() -> None:
+    """Reset in-memory cache to force re-read from disk."""
+    voltamanager.cache._state["cache"] = None
+    voltamanager.cache._state["mtime"] = 0.0
 
 
 def test_cache_with_custom_ttl(temp_cache_dir) -> None:
     """Test cache respects custom TTL."""
+    _cache_dir, cache_file = temp_cache_dir
     package = "test-package"
     version = "1.0.0"
 
@@ -32,11 +44,12 @@ def test_cache_with_custom_ttl(temp_cache_dir) -> None:
     assert get_cached_version(package, ttl_hours=1) == version
 
     # Modify cache to be 2 hours old
-    cache_file = temp_cache_dir / f"{package}.json"
     data = json.loads(cache_file.read_text(encoding="utf-8"))
-    old_time = datetime.now() - timedelta(hours=2)
-    data["timestamp"] = old_time.isoformat()
+    data[package]["ts"] = time.time() - 7200  # 2 hours ago
     cache_file.write_text(json.dumps(data), encoding="utf-8")
+
+    # Reset in-memory cache to force re-read
+    _reset_cache_state()
 
     # Should be expired with 1 hour TTL
     assert get_cached_version(package, ttl_hours=1) is None
@@ -47,6 +60,7 @@ def test_cache_with_custom_ttl(temp_cache_dir) -> None:
 
 def test_cache_with_longer_ttl(temp_cache_dir) -> None:
     """Test cache with longer TTL (24 hours)."""
+    _cache_dir, cache_file = temp_cache_dir
     package = "long-lived-package"
     version = "2.0.0"
 
@@ -54,11 +68,12 @@ def test_cache_with_longer_ttl(temp_cache_dir) -> None:
     cache_version(package, version)
 
     # Modify to be 12 hours old
-    cache_file = temp_cache_dir / f"{package}.json"
     data = json.loads(cache_file.read_text(encoding="utf-8"))
-    old_time = datetime.now() - timedelta(hours=12)
-    data["timestamp"] = old_time.isoformat()
+    data[package]["ts"] = time.time() - 43200  # 12 hours ago
     cache_file.write_text(json.dumps(data), encoding="utf-8")
+
+    # Reset in-memory cache
+    _reset_cache_state()
 
     # Should be expired with 1 hour TTL
     assert get_cached_version(package, ttl_hours=1) is None
@@ -69,6 +84,7 @@ def test_cache_with_longer_ttl(temp_cache_dir) -> None:
 
 def test_cache_default_ttl(temp_cache_dir) -> None:
     """Test cache uses default 1 hour TTL when not specified."""
+    _cache_dir, cache_file = temp_cache_dir
     package = "default-ttl-package"
     version = "3.0.0"
 
@@ -79,11 +95,12 @@ def test_cache_default_ttl(temp_cache_dir) -> None:
     assert get_cached_version(package) == version
 
     # Make it 2 hours old
-    cache_file = temp_cache_dir / f"{package}.json"
     data = json.loads(cache_file.read_text(encoding="utf-8"))
-    old_time = datetime.now() - timedelta(hours=2)
-    data["timestamp"] = old_time.isoformat()
+    data[package]["ts"] = time.time() - 7200  # 2 hours ago
     cache_file.write_text(json.dumps(data), encoding="utf-8")
+
+    # Reset in-memory cache
+    _reset_cache_state()
 
     # Should be expired with default 1 hour TTL
     assert get_cached_version(package) is None
@@ -91,6 +108,7 @@ def test_cache_default_ttl(temp_cache_dir) -> None:
 
 def test_cache_scoped_package_with_ttl(temp_cache_dir) -> None:
     """Test cache handles scoped packages with custom TTL."""
+    _cache_dir, cache_file = temp_cache_dir
     package = "@vue/cli"
     version = "5.0.8"
 
@@ -100,6 +118,7 @@ def test_cache_scoped_package_with_ttl(temp_cache_dir) -> None:
     # Should be valid
     assert get_cached_version(package, ttl_hours=2) == version
 
-    # Check file was created with correct name (/ replaced with _)
-    cache_file = temp_cache_dir / "@vue_cli.json"
-    assert cache_file.exists()
+    # Check data in cache file
+    data = json.loads(cache_file.read_text(encoding="utf-8"))
+    assert package in data
+    assert data[package]["v"] == version

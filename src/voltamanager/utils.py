@@ -2,12 +2,22 @@
 
 import json
 import shutil
+from functools import lru_cache
 from pathlib import Path
 
 from packaging import version as pkg_version
 from rich.console import Console
 
 console = Console()
+
+
+@lru_cache(maxsize=256)
+def _parse_version(version_str: str) -> pkg_version.Version | None:
+    """Parse version string with caching to avoid repeated parsing."""
+    try:
+        return pkg_version.parse(version_str)
+    except pkg_version.InvalidVersion:
+        return None
 
 
 def is_major_update(current: str, latest: str) -> bool:
@@ -21,17 +31,19 @@ def is_major_update(current: str, latest: str) -> bool:
         True if latest has a higher major version than current
 
     """
-    try:
-        current_ver = pkg_version.parse(current)
-        latest_ver = pkg_version.parse(latest)
+    current_ver = _parse_version(current)
+    latest_ver = _parse_version(latest)
 
+    if current_ver is None or latest_ver is None:
+        return False
+
+    try:
         # Access major version - packaging.version.Version has release tuple
         # release[0] is major, release[1] is minor, release[2] is patch
         if hasattr(current_ver, "release") and hasattr(latest_ver, "release"):
             return bool(latest_ver.release[0] > current_ver.release[0])
-
         return False
-    except (pkg_version.InvalidVersion, AttributeError, IndexError):
+    except (AttributeError, IndexError):
         return False
 
 
@@ -46,10 +58,13 @@ def is_minor_update(current: str, latest: str) -> bool:
         True if latest has a higher minor version (same major) than current
 
     """
-    try:
-        current_ver = pkg_version.parse(current)
-        latest_ver = pkg_version.parse(latest)
+    current_ver = _parse_version(current)
+    latest_ver = _parse_version(latest)
 
+    if current_ver is None or latest_ver is None:
+        return False
+
+    try:
         if (
             hasattr(current_ver, "release")
             and hasattr(latest_ver, "release")
@@ -61,9 +76,8 @@ def is_minor_update(current: str, latest: str) -> bool:
                 current_ver.release[0] == latest_ver.release[0]
                 and latest_ver.release[1] > current_ver.release[1]
             )
-
         return False
-    except (pkg_version.InvalidVersion, AttributeError, IndexError):
+    except (AttributeError, IndexError):
         return False
 
 

@@ -1,6 +1,7 @@
 """Display formatting and output."""
 
 import json
+from collections import Counter
 
 from rich.console import Console
 from rich.table import Table
@@ -91,11 +92,13 @@ def display_statistics(  # noqa: C901, PLR0912
     """Display summary statistics with enhanced reporting."""
     console.print("\n[bold]Summary:[/bold]")
     total = len(states)
-    up_to_date = states.count("up-to-date")
-    outdated = states.count("OUTDATED")
-    project = states.count("PROJECT")
-    unknown = states.count("UNKNOWN")
-    excluded = states.count("EXCLUDED")
+    # Single pass count with Counter instead of 5 separate list scans
+    counts = Counter(states)
+    up_to_date = counts["up-to-date"]
+    outdated = counts["OUTDATED"]
+    project = counts["PROJECT"]
+    unknown = counts["UNKNOWN"]
+    excluded = counts["EXCLUDED"]
 
     console.print(f"  Total packages: {total}")
     console.print(f"  [green]✓ Up-to-date: {up_to_date}[/green]")

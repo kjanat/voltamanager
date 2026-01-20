@@ -36,7 +36,7 @@ repos:
           - "	"
           - --top-keys
           - $schema,version,label,type,command,group,detail
-      - id: requirements-txt-fixer
+
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.13
@@ -87,10 +87,8 @@ repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
     rev: 0.9.26
     hooks:
-      # Updates uv.lock, even if the pyproject.toml file was changed
+      # Updates uv.lock when pyproject.toml changes
       - id: uv-lock
-        # Keeps the requirements.txt file in sync with uv.lock
-      - id: uv-export
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
     rev: 0.36.0

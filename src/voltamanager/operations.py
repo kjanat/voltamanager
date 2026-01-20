@@ -159,11 +159,12 @@ def check_and_update(  # noqa: C901, PLR0913, PLR0917, PLR0911, PLR0912, PLR0915
                     states.append("OUTDATED")
                     to_install.append(f"{name}@latest")
 
-        # Get uncached packages
-        uncached = [(n, v) for n, v in packages_to_check if n not in names]
+        # Get uncached packages - use set for O(1) lookup
+        cached_names = set(names)
+        uncached = [(n, v) for n, v in packages_to_check if n not in cached_names]
         if uncached:
             latest_versions = get_latest_versions_parallel(
-                uncached, safe_dir, config.parallel_checks
+                uncached, config.parallel_checks
             )
             for name, ver in uncached:
                 lat = latest_versions.get(name)
@@ -185,7 +186,7 @@ def check_and_update(  # noqa: C901, PLR0913, PLR0917, PLR0911, PLR0912, PLR0915
     else:
         # No cache, check all in parallel
         latest_versions = get_latest_versions_parallel(
-            packages_to_check, safe_dir, config.parallel_checks
+            packages_to_check, config.parallel_checks
         )
         for name, ver in packages_to_check:
             lat = latest_versions.get(name)
