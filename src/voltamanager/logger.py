@@ -117,7 +117,7 @@ def log_package_update(
 
     """
     logger.info(
-        f"Updated {package}: {old_version} → {new_version}",
+        f"Updated {package}: {old_version} -> {new_version}",
         extra={
             "operation": "update",
             "package": package,

@@ -245,7 +245,9 @@ def check_and_update(  # noqa: C901, PLR0913, PLR0917, PLR0911, PLR0912, PLR0915
                 )
                 for pkg_name, current, lat in major_updates[:5]:  # Show first 5
                     changelog = get_changelog_url(pkg_name)
-                    console.print(f"  [yellow]• {pkg_name}: {current} → {lat}[/yellow]")
+                    console.print(
+                        f"  [yellow]* {pkg_name}: {current} -> {lat}[/yellow]"
+                    )
                     console.print(f"    [dim]{changelog}[/dim]")
 
                 if len(major_updates) > 5:

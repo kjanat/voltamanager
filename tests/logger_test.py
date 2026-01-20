@@ -236,7 +236,7 @@ class TestLogPackageUpdate:
         assert "lodash" in log_content
         assert "4.17.20" in log_content
         assert "4.17.21" in log_content
-        assert "→" in log_content
+        assert "->" in log_content
 
     def test_log_package_update_with_scoped_package(self, tmp_path, monkeypatch):
         """Test package update logging with scoped package."""
