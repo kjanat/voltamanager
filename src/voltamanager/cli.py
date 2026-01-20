@@ -533,7 +533,8 @@ def security_audit(
             raise typer.Exit(1)
         elif (
             audit_data
-            and audit_data.get("metadata", {})
+            and audit_data
+            .get("metadata", {})
             .get("vulnerabilities", {})
             .get("total", 0)
             > 0
