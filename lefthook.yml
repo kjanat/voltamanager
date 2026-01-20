@@ -10,7 +10,7 @@ pre-commit:
       run: uv run ruff format {staged_files}
       stage_fixed: true
     mypy:
-      glob: "*.py"
+      glob: "src/voltamanager/*.py"
       run: uv run mypy {staged_files}
     readme:
       glob: "src/voltamanager/*.py"

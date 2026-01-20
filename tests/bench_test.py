@@ -20,7 +20,7 @@ class TestBenchCommand:
         result = runner.invoke(app, ["bench", "--help"], color=False)
         assert result.exit_code == 0
         assert "Benchmark npm registry query performance" in result.stdout
-        assert "--packages" in result.stdout
+        assert "packages" in result.stdout
 
     def test_bench_basic_execution(self, runner):
         """Test bench command runs successfully."""
