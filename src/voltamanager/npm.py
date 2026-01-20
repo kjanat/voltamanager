@@ -37,7 +37,7 @@ def get_latest_version(package_name: str) -> str | None:
                 url,
                 headers={"Accept": "application/json", "User-Agent": "voltamanager"},
             )
-            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:
+            with urllib.request.urlopen(req, timeout=HTTP_TIMEOUT) as resp:  # nosec B310
                 data = json.loads(resp.read().decode("utf-8"))
                 version = data.get("version")
                 return version if isinstance(version, str) else None
@@ -77,7 +77,7 @@ def get_latest_versions_batch(package_names: list[str]) -> dict[str, str | None]
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=30) as resp:
+        with urllib.request.urlopen(req, timeout=30) as resp:  # nosec B310
             data = json.loads(resp.read().decode("utf-8"))
 
         # Parse response
