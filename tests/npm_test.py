@@ -1,6 +1,7 @@
 """Tests for npm module."""
 
 import urllib.error
+from email.message import Message
 from unittest.mock import MagicMock, patch
 
 from voltamanager.npm import (
@@ -67,7 +68,7 @@ class TestGetLatestVersion:
             patch("time.sleep") as mock_sleep,
         ):
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                "url", 404, "Not Found", {}, None
+                "url", 404, "Not Found", Message(), None
             )
             version = get_latest_version("nonexistent-package")
 
@@ -150,7 +151,7 @@ class TestGetLatestVersionsBatch:
         """Test handling HTTP error."""
         with patch("urllib.request.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = urllib.error.HTTPError(
-                "url", 500, "Server Error", {}, None
+                "url", 500, "Server Error", Message(), None
             )
             versions = get_latest_versions_batch(["lodash"])
             assert versions == {}
