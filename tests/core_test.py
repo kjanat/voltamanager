@@ -25,8 +25,8 @@ class TestCheckDependencies:
     def test_volta_missing() -> None:
         """Test when volta is not in PATH."""
         with patch("shutil.which") as mock_which:
-            mock_which.side_effect = (
-                lambda cmd: None if cmd == "volta" else "/usr/bin/npm"
+            mock_which.side_effect = lambda cmd: (
+                None if cmd == "volta" else "/usr/bin/npm"
             )
             assert check_dependencies() is False
 
@@ -34,8 +34,8 @@ class TestCheckDependencies:
     def test_npm_missing() -> None:
         """Test when npm is not in PATH."""
         with patch("shutil.which") as mock_which:
-            mock_which.side_effect = (
-                lambda cmd: "/usr/bin/volta" if cmd == "volta" else None
+            mock_which.side_effect = lambda cmd: (
+                "/usr/bin/volta" if cmd == "volta" else None
             )
             assert check_dependencies() is False
 

@@ -70,8 +70,8 @@ def test_check_volta_health_npm_missing() -> None:
         patch("voltamanager.core.subprocess.run") as mock_run,
     ):
         # volta exists, npm doesn't
-        mock_which.side_effect = (
-            lambda cmd: "/usr/bin/volta" if cmd == "volta" else None
+        mock_which.side_effect = lambda cmd: (
+            "/usr/bin/volta" if cmd == "volta" else None
         )
 
         def run_side_effect(*args, **kwargs):
